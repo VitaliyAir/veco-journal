@@ -1,0 +1,637 @@
+<title>VEco Journal</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600&display=swap">
+
+<style>
+/* Layout: header(title + lang-toggle) → tab-nav → flex(sidebar 1 / content 4) */
+:root {
+  --bg:          #F5F4F1;
+  --surface:     #FFFFFF;
+  --fg:          #1C1B19;
+  --fg-muted:    #706D64;
+  --border:      #DDD9D0;
+  --accent:      #2D5A3D;
+  --accent-soft: #EBF2ED;
+  --shadow:      0 1px 4px rgba(0,0,0,.07);
+  --font-d: 'Playfair Display', Georgia, serif;
+  --font-u: 'Inter', system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:          #131311;
+    --surface:     #1D1C1A;
+    --fg:          #E8E5DF;
+    --fg-muted:    #928F86;
+    --border:      #2C2B27;
+    --accent:      #4A9060;
+    --accent-soft: #182A1E;
+    --shadow:      0 1px 4px rgba(0,0,0,.3);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg:          #131311;
+  --surface:     #1D1C1A;
+  --fg:          #E8E5DF;
+  --fg-muted:    #928F86;
+  --border:      #2C2B27;
+  --accent:      #4A9060;
+  --accent-soft: #182A1E;
+  --shadow:      0 1px 4px rgba(0,0,0,.3);
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-u);
+  font-size: 15px;
+  line-height: 1.6;
+  padding-left:  max(24px, env(safe-area-inset-left,  0px));
+  padding-right: max(24px, env(safe-area-inset-right, 0px));
+  padding-block: 0;
+}
+
+/* ── Header ── */
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28px 0 0;
+  margin-bottom: 22px;
+}
+.site-title {
+  font-family: var(--font-d);
+  font-size: 1.45rem;
+  font-weight: 600;
+  letter-spacing: -.02em;
+  color: var(--fg);
+  margin: 0;
+}
+.site-title em { font-style: normal; color: var(--accent); }
+
+/* ── Language toggle ── */
+.lang-toggle {
+  display: flex;
+  gap: 2px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 3px;
+  flex-shrink: 0;
+}
+.lang-btn {
+  background: none;
+  border: none;
+  border-radius: 5px;
+  padding: 4px 11px;
+  font-family: var(--font-u);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: .06em;
+  color: var(--fg-muted);
+  cursor: pointer;
+  transition: background .15s, color .15s;
+}
+.lang-btn.active { background: var(--accent); color: #fff; }
+.lang-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ── Tab nav ── */
+.tab-nav {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 26px;
+}
+.tab-btn {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  padding: 9px 22px;
+  font-family: var(--font-u);
+  font-size: .875rem;
+  font-weight: 500;
+  color: var(--fg-muted);
+  cursor: pointer;
+  transition: color .15s, border-color .15s;
+}
+.tab-btn:hover { color: var(--fg); }
+.tab-btn.active { color: var(--fg); border-bottom-color: var(--accent); }
+.tab-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+
+/* ── Tab panels ── */
+.tab-panel { display: none; }
+.tab-panel.active { display: flex; gap: 24px; align-items: flex-start; }
+
+/* ── Sidebar ── */
+.sidebar { flex: 1; min-width: 0; max-width: 190px; position: sticky; top: 16px; }
+.sidebar-box {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+.sidebar-heading {
+  font-size: .7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--fg-muted);
+  margin: 0 0 14px;
+}
+.link-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 9px; }
+.link-list a {
+  font-size: .875rem;
+  font-weight: 500;
+  color: var(--accent);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.link-list a::before { content: '↗'; font-size: .7rem; opacity: .6; }
+.link-list a:hover { text-decoration: underline; }
+
+/* ── Content ── */
+.content { flex: 4; min-width: 0; padding-bottom: 52px; }
+
+/* ── News feed ── */
+.news-feed { display: flex; flex-direction: column; gap: 36px; max-width: 660px; }
+
+.news-meta { font-size: .78rem; color: var(--fg-muted); margin-bottom: 9px; font-variant-numeric: tabular-nums; }
+
+.news-headline {
+  font-family: var(--font-d);
+  font-size: 1.55rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--fg);
+  margin: 0 0 18px;
+  text-wrap: balance;
+}
+
+.news-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px 24px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+/* Quote style */
+.quote-block { display: flex; flex-direction: column; gap: 12px; }
+.quote-line {
+  font-family: var(--font-d);
+  font-style: italic;
+  font-size: 1.04rem;
+  line-height: 1.65;
+  color: var(--fg);
+  margin: 0;
+  padding-left: 16px;
+  border-left: 2px solid var(--accent);
+}
+
+/* Project mini-list style */
+.proj-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.proj-list li { display: flex; flex-direction: column; gap: 2px; }
+.proj-name { font-weight: 600; color: var(--fg); font-size: .9rem; }
+.proj-name em { font-style: normal; color: var(--accent); margin-right: 4px; }
+.proj-blurb { font-size: .85rem; color: var(--fg-muted); line-height: 1.5; }
+
+/* Divider between posts */
+.news-divider { border: none; border-top: 1px solid var(--border); }
+
+/* ── Empty state ── */
+.empty-state { padding: 40px 0; color: var(--fg-muted); font-size: .875rem; }
+
+/* ── Portfolio ── */
+.portfolio-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+
+.tile {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  transition: border-color .15s, transform .1s;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.tile:hover { border-color: var(--accent); transform: translateY(-1px); }
+
+.tile-tag {
+  display: inline-block;
+  font-size: .68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--accent);
+  background: var(--accent-soft);
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  align-self: flex-start;
+}
+.tile-name { font-family: var(--font-d); font-size: 1.1rem; font-weight: 600; color: var(--fg); margin: 0 0 8px; }
+.tile-desc { font-size: .84rem; color: var(--fg-muted); line-height: 1.55; margin: 0 0 12px; flex: 1; }
+
+.tile-stack { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 14px; }
+.badge {
+  font-size: .7rem;
+  color: var(--fg-muted);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 7px;
+}
+
+.tile-footer { border-top: 1px solid var(--border); padding-top: 12px; margin-top: 4px; display: flex; flex-direction: column; gap: 6px; }
+.tile-link { font-size: .8rem; color: var(--accent); text-decoration: none; display: flex; align-items: center; gap: 5px; }
+.tile-link::before { content: '↗'; font-size: .7rem; opacity: .6; }
+.tile-link:hover { text-decoration: underline; }
+.tile-access { font-size: .78rem; color: var(--fg-muted); display: flex; align-items: center; gap: 6px; }
+.tile-access::before { content: '🔒'; font-size: .75rem; }
+.tile-contact { font-size: .78rem; color: var(--accent); font-weight: 500; }
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .tab-panel.active { flex-direction: column; }
+  .sidebar { max-width: 100%; position: static; }
+  .portfolio-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 420px) {
+  .portfolio-grid { grid-template-columns: 1fr; }
+  .tab-btn { padding: 9px 14px; }
+  .site-title { font-size: 1.2rem; }
+}
+</style>
+
+<!-- ── HEADER ── -->
+<header class="site-header">
+  <h1 class="site-title">VEco<em>·</em>Journal</h1>
+  <div class="lang-toggle" role="group" aria-label="Language">
+    <button class="lang-btn active" data-lang="ru">RU</button>
+    <button class="lang-btn"        data-lang="en">EN</button>
+  </div>
+</header>
+
+<!-- ── TAB NAV ── -->
+<nav class="tab-nav" role="tablist">
+  <button class="tab-btn active" role="tab" aria-selected="true"  data-tab="news"      data-i18n="tab_news">Новости</button>
+  <button class="tab-btn"        role="tab" aria-selected="false" data-tab="articles"  data-i18n="tab_articles">Статьи</button>
+  <button class="tab-btn"        role="tab" aria-selected="false" data-tab="portfolio" data-i18n="tab_portfolio">Портфолио</button>
+</nav>
+
+<!-- ══ NEWS ══ -->
+<div class="tab-panel active" id="panel-news" role="tabpanel">
+  <aside class="sidebar">
+    <div class="sidebar-box">
+      <p class="sidebar-heading" data-i18n="links_label">Ссылки</p>
+      <ul class="link-list">
+        <li><a href="https://github.com/VitaliyAir" target="_blank" rel="noopener">GitHub</a></li>
+      </ul>
+    </div>
+  </aside>
+  <main class="content">
+    <div class="news-feed" id="news-feed"></div>
+  </main>
+</div>
+
+<!-- ══ ARTICLES ══ -->
+<div class="tab-panel" id="panel-articles" role="tabpanel">
+  <aside class="sidebar">
+    <div class="sidebar-box">
+      <p class="sidebar-heading" data-i18n="links_label">Ссылки</p>
+      <ul class="link-list">
+        <li><a href="https://github.com/VitaliyAir" target="_blank" rel="noopener">GitHub</a></li>
+      </ul>
+    </div>
+  </aside>
+  <main class="content">
+    <div class="empty-state" data-i18n="articles_empty">Статьи ещё не добавлены.</div>
+  </main>
+</div>
+
+<!-- ══ PORTFOLIO ══ -->
+<div class="tab-panel" id="panel-portfolio" role="tabpanel">
+  <aside class="sidebar">
+    <div class="sidebar-box">
+      <p class="sidebar-heading" data-i18n="links_label">Ссылки</p>
+      <ul class="link-list" id="portfolio-sidebar-links"></ul>
+    </div>
+  </aside>
+  <main class="content">
+    <div class="portfolio-grid" id="portfolio-grid"></div>
+  </main>
+</div>
+
+<script>
+/* ══════════════════════════════════════════
+   TRANSLATIONS
+══════════════════════════════════════════ */
+const T = {
+  ru: {
+    tab_news:        'Новости',
+    tab_articles:    'Статьи',
+    tab_portfolio:   'Портфолио',
+    links_label:     'Ссылки',
+    articles_empty:  'Статьи ещё не добавлены.',
+    access_note:     'Доступ только по запросу',
+    contact_prefix:  'Контакт:',
+  },
+  en: {
+    tab_news:        'News',
+    tab_articles:    'Articles',
+    tab_portfolio:   'Portfolio',
+    links_label:     'Links',
+    articles_empty:  'No articles yet.',
+    access_note:     'Access on request',
+    contact_prefix:  'Contact:',
+  }
+};
+
+/* ══════════════════════════════════════════
+   NEWS DATA
+══════════════════════════════════════════ */
+const newsData = [
+  {
+    dateStr: { ru: null, en: null }, // filled by today's date
+    title: {
+      ru: 'Опыт, мысли и достижения — без лишнего шума',
+      en: 'Experience, thoughts and achievements — without the noise'
+    },
+    type: 'quotes',
+    quotes: {
+      ru: [
+        '«От заметок до продуктов: как я думаю и что создаю.»',
+        '«Рассказываю о своём пути в создании продуктов — и делюсь тем, что помогает.»'
+      ],
+      en: [
+        '"From notes to products: how I think and what I build."',
+        '"I share my journey in building products — and what helps along the way."'
+      ]
+    }
+  },
+  {
+    date: new Date('2026-10-22'),
+    title: {
+      ru: 'За пару недель — четыре продукта',
+      en: 'Four products in a couple of weeks'
+    },
+    type: 'projects',
+    intro: {
+      ru: 'За несколько недель удалось собрать и запустить четыре личных проекта:',
+      en: 'Over the past few weeks I managed to build and ship four personal projects:'
+    },
+    projects: [
+      {
+        name: 'VGoalsPlanner',
+        desc: {
+          ru: 'Приватный планировщик целей. Цели разбиваются на задачи, прогресс отслеживается пошагово. Цель — инструмент для осознанного движения вперёд.',
+          en: 'A private goals planner. Goals break down into tasks with step-by-step progress tracking. The aim: a tool for intentional, focused progress.'
+        }
+      },
+      {
+        name: 'VLinks',
+        desc: {
+          ru: 'Менеджер ссылок с генератором коротких URL. Позволяет хранить, тегировать и быстро находить нужные адреса.',
+          en: 'A link manager with a short URL generator. Store, tag, and quickly find the links you need.'
+        }
+      },
+      {
+        name: 'VLibrary',
+        desc: {
+          ru: 'Виртуальная библиотека — каталог книг с трекером прочитанного. Цель: помнить, что читал, и планировать следующее.',
+          en: 'A virtual library — a book catalog with a reading tracker. The goal: remember what you\'ve read and plan what\'s next.'
+        }
+      },
+      {
+        name: 'VStorage',
+        desc: {
+          ru: 'S3-подобное файловое хранилище с изоляцией данных по пользователям. Основа для других проектов, которым нужно хранить файлы.',
+          en: 'An S3-like file storage service with per-user data isolation. The foundation for other projects that need to store files.'
+        }
+      }
+    ]
+  }
+];
+
+/* ══════════════════════════════════════════
+   PORTFOLIO DATA
+══════════════════════════════════════════ */
+const portfolioData = [
+  {
+    tag: { ru: 'Планировщик', en: 'Planner' },
+    name: 'VGoalsPlanner',
+    desc: {
+      ru: 'Приватный планировщик целей с иерархией: цель → задачи → шаги. Позволяет отслеживать прогресс, расставлять приоритеты и видеть общую картину достижений. Рассчитан на персональное использование без привязки к чужим системам.',
+      en: 'A private goal planner with hierarchy: goal → tasks → steps. Track progress, set priorities, and see the big picture. Designed for personal use without depending on external platforms.'
+    },
+    stack: ['.NET 10', 'Postgres', 'React', 'MediatR', 'JWT'],
+    github: 'https://github.com/VitaliyAir/vgplanner',
+    url: 'https://vgplanner.155-212-168-28.sslip.io'
+  },
+  {
+    tag: { ru: 'Инструмент', en: 'Tool' },
+    name: 'VLinks',
+    desc: {
+      ru: 'Менеджер ссылок с генератором коротких URL. Каждая ссылка хранится с метаданными, тегами и счётчиком переходов. Короткие ссылки создаются автоматически и работают через редирект. Удобно для личного архива и быстрого доступа.',
+      en: 'A link manager with a short URL generator. Each link is stored with metadata, tags, and click counters. Short URLs are auto-generated and handled via redirect. Great for personal archives and quick access.'
+    },
+    stack: ['.NET 10', 'Postgres', 'Minimal API', 'JWT'],
+    github: 'https://github.com/VitaliyAir/vlink',
+    url: 'https://vlinks.155-212-168-28.sslip.io'
+  },
+  {
+    tag: { ru: 'Библиотека', en: 'Library' },
+    name: 'VLibrary',
+    desc: {
+      ru: 'Виртуальная библиотека: каталог книг с трекером прочитанного, оценками и заметками. Поддерживает фильтрацию по жанрам и авторам. Цель — личная база знаний вместо разрозненных списков.',
+      en: 'A virtual library: book catalog with a reading tracker, ratings, and notes. Supports filtering by genre and author. The goal — a personal knowledge base instead of scattered lists.'
+    },
+    stack: ['.NET 10', 'Postgres', 'React', 'MediatR', 'JWT'],
+    github: 'https://github.com/VitaliyAir/vlibrary',
+    url: 'https://vlibrary.155-212-168-28.sslip.io'
+  },
+  {
+    tag: { ru: 'Хранилище', en: 'Storage' },
+    name: 'VStorage',
+    desc: {
+      ru: 'S3-подобный сервис хранения файлов. Метаданные хранятся в Postgres, сами файлы — на файловой системе сервера. Изоляция по пользователям через JWT. Служит общей инфраструктурой для загрузки файлов в других VEco-проектах.',
+      en: 'An S3-like file storage service. Metadata lives in Postgres, files on the server filesystem. Per-user isolation via JWT. Serves as the shared file-upload infrastructure for other VEco projects.'
+    },
+    stack: ['.NET 10', 'Postgres', 'Minimal API', 'JWT', 'Keycloak'],
+    github: 'https://github.com/VitaliyAir/vstorage',
+    url: 'https://vstorage.155-212-168-28.sslip.io'
+  }
+];
+
+/* ══════════════════════════════════════════
+   STATE
+══════════════════════════════════════════ */
+let currentLang = 'ru';
+
+/* ══════════════════════════════════════════
+   TAB SWITCHING
+══════════════════════════════════════════ */
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => {
+      b.classList.remove('active');
+      b.setAttribute('aria-selected', 'false');
+    });
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    btn.setAttribute('aria-selected', 'true');
+    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+/* ══════════════════════════════════════════
+   LANGUAGE TOGGLE
+══════════════════════════════════════════ */
+document.querySelectorAll('.lang-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentLang = btn.dataset.lang;
+    document.querySelectorAll('.lang-btn').forEach(b =>
+      b.classList.toggle('active', b.dataset.lang === currentLang)
+    );
+    applyTranslations();
+    renderNews();
+    renderPortfolio();
+  });
+});
+
+function applyTranslations() {
+  const t = T[currentLang];
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    if (t[key] !== undefined) el.textContent = t[key];
+  });
+}
+
+/* ══════════════════════════════════════════
+   RENDER NEWS
+══════════════════════════════════════════ */
+function formatDate(date, lang) {
+  return date.toLocaleDateString(lang === 'ru' ? 'ru-RU' : 'en-US', {
+    day: 'numeric', month: 'long', year: 'numeric'
+  });
+}
+
+function renderNews() {
+  const feed = document.getElementById('news-feed');
+  feed.innerHTML = '';
+  const l = currentLang;
+
+  newsData.forEach((item, idx) => {
+    const dateObj = item.date || new Date();
+
+    // Meta
+    const meta = document.createElement('div');
+    meta.className = 'news-meta';
+    meta.textContent = formatDate(dateObj, l);
+
+    // Headline
+    const h = document.createElement('h2');
+    h.className = 'news-headline';
+    h.textContent = item.title[l];
+
+    // Card
+    const card = document.createElement('div');
+    card.className = 'news-card';
+
+    if (item.type === 'quotes') {
+      const block = document.createElement('div');
+      block.className = 'quote-block';
+      item.quotes[l].forEach(q => {
+        const p = document.createElement('p');
+        p.className = 'quote-line';
+        p.textContent = q;
+        block.appendChild(p);
+      });
+      card.appendChild(block);
+    } else if (item.type === 'projects') {
+      const intro = document.createElement('p');
+      intro.style.cssText = 'margin:0 0 16px;font-size:.9rem;color:var(--fg-muted)';
+      intro.textContent = item.intro[l];
+      card.appendChild(intro);
+
+      const ul = document.createElement('ul');
+      ul.className = 'proj-list';
+      item.projects.forEach(p => {
+        const li = document.createElement('li');
+        li.innerHTML =
+          `<span class="proj-name"><em>${p.name}</em></span>` +
+          `<span class="proj-blurb">${p.desc[l]}</span>`;
+        ul.appendChild(li);
+      });
+      card.appendChild(ul);
+    }
+
+    // Wrap in article
+    const article = document.createElement('article');
+    article.appendChild(meta);
+    article.appendChild(h);
+    article.appendChild(card);
+    feed.appendChild(article);
+
+    if (idx < newsData.length - 1) {
+      feed.appendChild(document.createElement('hr')).className = 'news-divider';
+    }
+  });
+}
+
+/* ══════════════════════════════════════════
+   RENDER PORTFOLIO
+══════════════════════════════════════════ */
+function renderPortfolio() {
+  const grid   = document.getElementById('portfolio-grid');
+  const slinks = document.getElementById('portfolio-sidebar-links');
+  const l = currentLang;
+  const t = T[l];
+
+  grid.innerHTML = '';
+  slinks.innerHTML = '';
+
+  portfolioData.forEach(p => {
+    // Sidebar link
+    const li = document.createElement('li');
+    li.innerHTML = `<a href="${p.github}" target="_blank" rel="noopener">${p.name}</a>`;
+    slinks.appendChild(li);
+
+    // Tile
+    const tile = document.createElement('div');
+    tile.className = 'tile';
+
+    const stackHtml = p.stack.map(s => `<span class="badge">${s}</span>`).join('');
+
+    tile.innerHTML =
+      `<span class="tile-tag">${p.tag[l]}</span>` +
+      `<h3 class="tile-name">${p.name}</h3>` +
+      `<p class="tile-desc">${p.desc[l]}</p>` +
+      `<div class="tile-stack">${stackHtml}</div>` +
+      `<div class="tile-footer">` +
+        `<a class="tile-link" href="${p.github}" target="_blank" rel="noopener">GitHub</a>` +
+        `<a class="tile-link" href="${p.url}" target="_blank" rel="noopener">${p.url.replace('https://','')}</a>` +
+        `<span class="tile-access">${t.access_note}</span>` +
+        `<span class="tile-contact">${t.contact_prefix} <a class="tile-link" href="https://t.me/awitalii" target="_blank" rel="noopener" style="display:inline">@awitalii</a></span>` +
+      `</div>`;
+
+    grid.appendChild(tile);
+  });
+}
+
+/* ══════════════════════════════════════════
+   INIT
+══════════════════════════════════════════ */
+renderNews();
+renderPortfolio();
+applyTranslations();
+</script>
