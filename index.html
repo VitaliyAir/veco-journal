@@ -258,6 +258,29 @@ body {
 .tile-access { font-size: .78rem; color: var(--fg-muted); display: flex; align-items: center; gap: 6px; }
 .tile-access::before { content: '🔒'; font-size: .75rem; }
 .tile-contact { font-size: .78rem; color: var(--accent); font-weight: 500; }
+.tile-diagram { margin: 8px 0 4px; }
+
+/* ── Portfolio intro ── */
+.portfolio-intro { max-width: 660px; margin-bottom: 24px; }
+.portfolio-intro p { font-size: .88rem; color: var(--fg-muted); line-height: 1.65; margin: 0; }
+
+/* ── Stack label ── */
+.stack-label { font-size: .68rem; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--fg-muted); display: block; margin-bottom: 5px; }
+
+/* ── Accordion ── */
+.tile-accordion { border-top: 1px solid var(--border); padding-top: 10px; margin: 8px 0 4px; }
+.accordion-btn {
+  background: none; border: none; padding: 0; cursor: pointer;
+  display: flex; align-items: center; justify-content: space-between;
+  width: 100%; color: var(--fg-muted); font-family: var(--font-u);
+  font-size: .8rem; font-weight: 500;
+}
+.accordion-btn:hover { color: var(--fg); }
+.accordion-arrow { font-size: .65rem; opacity: .7; transition: transform .2s; display: inline-block; }
+.tile-accordion.open .accordion-arrow { transform: rotate(90deg); }
+.accordion-body { display: none; padding-top: 8px; }
+.tile-accordion.open .accordion-body { display: block; }
+.accordion-body p { font-size: .84rem; color: var(--fg-muted); line-height: 1.55; margin: 0; }
 
 /* ── Responsive ── */
 @media (max-width: 600px) {
@@ -327,6 +350,7 @@ body {
     </div>
   </aside>
   <main class="content">
+    <div class="portfolio-intro" id="portfolio-intro"></div>
     <div class="portfolio-grid" id="portfolio-grid"></div>
   </main>
 </div>
@@ -342,17 +366,23 @@ const T = {
     tab_portfolio:   'Портфолио',
     links_label:     'Ссылки',
     articles_empty:  'Статьи ещё не добавлены.',
-    access_note:     'Доступ только по запросу',
-    contact_prefix:  'Контакт:',
+    access_note:      'Доступ только по запросу',
+    contact_prefix:   'Контакт:',
+    portfolio_intro:  'Приложения, которые я создал — задачи, которые они решают, и стек, на котором они работают.',
+    stack_label:      'Стек:',
+    accordion_label:  'Описание',
   },
   en: {
-    tab_news:        'News',
-    tab_articles:    'Articles',
-    tab_portfolio:   'Portfolio',
-    links_label:     'Links',
-    articles_empty:  'No articles yet.',
-    access_note:     'Access on request',
-    contact_prefix:  'Contact:',
+    tab_news:         'News',
+    tab_articles:     'Articles',
+    tab_portfolio:    'Portfolio',
+    links_label:      'Links',
+    articles_empty:   'No articles yet.',
+    access_note:      'Access on request',
+    contact_prefix:   'Contact:',
+    portfolio_intro:  'Apps I built — the problems they solve, and the stack they run on.',
+    stack_label:      'Stack:',
+    accordion_label:  'Description',
   }
 };
 
@@ -430,10 +460,41 @@ const portfolioData = [
     tag: { ru: 'Планировщик', en: 'Planner' },
     name: 'VGoalsPlanner',
     desc: {
-      ru: 'Приватный планировщик целей с иерархией: цель → задачи → шаги. Позволяет отслеживать прогресс, расставлять приоритеты и видеть общую картину достижений. Рассчитан на персональное использование без привязки к чужим системам.',
-      en: 'A private goal planner with hierarchy: goal → tasks → steps. Track progress, set priorities, and see the big picture. Designed for personal use without depending on external platforms.'
+      ru: 'Строится на идее постепенной детализации: от расплывчатой цели — к конкретным, выполнимым шагам. Иерархия Цель → Задачи → Шаги делает движение вперёд ощутимым и управляемым.',
+      en: 'Built on the idea of progressive detailing: from a vague goal down to concrete, actionable steps. The Goal → Tasks → Steps hierarchy makes progress tangible and manageable.'
     },
     stack: ['.NET 10', 'Postgres', 'React', 'MediatR', 'JWT'],
+    diagram: l => {
+      const g = l==='ru'?'Цель':'Goal';
+      const k = l==='ru'?'Задача':'Task';
+      const s = l==='ru'?'шаг':'step';
+      return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 92" style="width:100%;height:auto;display:block">` +
+        `<rect x="10" y="0" width="200" height="24" rx="6" fill="var(--accent)" fill-opacity=".15" stroke="var(--accent)" stroke-opacity=".3" stroke-width="1"/>` +
+        `<text x="110" y="16" text-anchor="middle" fill="var(--accent)" font-family="Inter,system-ui,sans-serif" font-size="11" font-weight="600">${g}</text>` +
+        `<line x1="110" y1="24" x2="110" y2="30" stroke="var(--border)" stroke-width="1.5"/>` +
+        `<polygon points="106,30 114,30 110,36" fill="var(--fg-muted)" opacity=".4"/>` +
+        `<rect x="0"   y="36" width="68" height="20" rx="5" fill="var(--accent)" fill-opacity=".08" stroke="var(--accent)" stroke-opacity=".2" stroke-width="1"/>` +
+        `<rect x="76"  y="36" width="68" height="20" rx="5" fill="var(--accent)" fill-opacity=".08" stroke="var(--accent)" stroke-opacity=".2" stroke-width="1"/>` +
+        `<rect x="152" y="36" width="68" height="20" rx="5" fill="var(--accent)" fill-opacity=".08" stroke="var(--accent)" stroke-opacity=".2" stroke-width="1"/>` +
+        `<text x="34"  y="50" text-anchor="middle" fill="var(--fg-muted)" font-family="Inter,system-ui,sans-serif" font-size="9">${k} 1</text>` +
+        `<text x="110" y="50" text-anchor="middle" fill="var(--fg-muted)" font-family="Inter,system-ui,sans-serif" font-size="9">${k} 2</text>` +
+        `<text x="186" y="50" text-anchor="middle" fill="var(--fg-muted)" font-family="Inter,system-ui,sans-serif" font-size="9">${k} 3</text>` +
+        `<line x1="110" y1="56" x2="110" y2="62" stroke="var(--border)" stroke-width="1.5"/>` +
+        `<polygon points="106,62 114,62 110,68" fill="var(--fg-muted)" opacity=".4"/>` +
+        `<rect x="0"   y="68" width="33" height="16" rx="4" fill="var(--border)" fill-opacity=".55"/>` +
+        `<rect x="37"  y="68" width="33" height="16" rx="4" fill="var(--border)" fill-opacity=".55"/>` +
+        `<rect x="74"  y="68" width="33" height="16" rx="4" fill="var(--border)" fill-opacity=".55"/>` +
+        `<rect x="111" y="68" width="33" height="16" rx="4" fill="var(--border)" fill-opacity=".55"/>` +
+        `<rect x="148" y="68" width="33" height="16" rx="4" fill="var(--border)" fill-opacity=".55"/>` +
+        `<rect x="185" y="68" width="33" height="16" rx="4" fill="var(--border)" fill-opacity=".55"/>` +
+        `<text x="16.5"  y="80" text-anchor="middle" fill="var(--fg-muted)" font-family="Inter,system-ui,sans-serif" font-size="7.5">${s}</text>` +
+        `<text x="53.5"  y="80" text-anchor="middle" fill="var(--fg-muted)" font-family="Inter,system-ui,sans-serif" font-size="7.5">${s}</text>` +
+        `<text x="90.5"  y="80" text-anchor="middle" fill="var(--fg-muted)" font-family="Inter,system-ui,sans-serif" font-size="7.5">${s}</text>` +
+        `<text x="127.5" y="80" text-anchor="middle" fill="var(--fg-muted)" font-family="Inter,system-ui,sans-serif" font-size="7.5">${s}</text>` +
+        `<text x="164.5" y="80" text-anchor="middle" fill="var(--fg-muted)" font-family="Inter,system-ui,sans-serif" font-size="7.5">${s}</text>` +
+        `<text x="201.5" y="80" text-anchor="middle" fill="var(--fg-muted)" font-family="Inter,system-ui,sans-serif" font-size="7.5">${s}</text>` +
+        `</svg>`;
+    },
     github: 'https://github.com/VitaliyAir/vgplanner',
     url: 'https://vgplanner.155-212-168-28.sslip.io'
   },
@@ -593,12 +654,22 @@ function renderNews() {
 ══════════════════════════════════════════ */
 function renderPortfolio() {
   const grid   = document.getElementById('portfolio-grid');
+  const intro  = document.getElementById('portfolio-intro');
   const slinks = document.getElementById('portfolio-sidebar-links');
   const l = currentLang;
   const t = T[l];
 
+  intro.innerHTML = `<p>${t.portfolio_intro}</p>`;
   grid.innerHTML = '';
   slinks.innerHTML = '';
+
+  const tgIcon =
+    `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" ` +
+    `fill="currentColor" style="flex-shrink:0;vertical-align:middle">` +
+    `<path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 ` +
+    `8.248-2.05 9.657c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605` +
+    `.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.48 14.697l-2.95-.924c-.642-.2-` +
+    `.655-.642.136-.953l11.527-4.447c.537-.194 1.006.131.37.875z"/></svg>`;
 
   portfolioData.forEach(p => {
     // Sidebar link
@@ -610,18 +681,28 @@ function renderPortfolio() {
     const tile = document.createElement('div');
     tile.className = 'tile';
 
-    const stackHtml = p.stack.map(s => `<span class="badge">${s}</span>`).join('');
+    const stackBadges = p.stack.map(s => `<span class="badge">${s}</span>`).join('');
+    const diagramHtml = p.diagram ? `<div class="tile-diagram">${p.diagram(l)}</div>` : '';
 
     tile.innerHTML =
       `<span class="tile-tag">${p.tag[l]}</span>` +
       `<h3 class="tile-name">${p.name}</h3>` +
-      `<p class="tile-desc">${p.desc[l]}</p>` +
-      `<div class="tile-stack">${stackHtml}</div>` +
+      diagramHtml +
+      `<div class="tile-accordion">` +
+        `<button class="accordion-btn" onclick="this.parentElement.classList.toggle('open')">` +
+          `<span>${t.accordion_label}</span>` +
+          `<span class="accordion-arrow">▸</span>` +
+        `</button>` +
+        `<div class="accordion-body"><p>${p.desc[l]}</p></div>` +
+      `</div>` +
+      `<div class="tile-stack"><span class="stack-label">${t.stack_label}</span>${stackBadges}</div>` +
       `<div class="tile-footer">` +
         `<a class="tile-link" href="${p.github}" target="_blank" rel="noopener">GitHub</a>` +
         `<a class="tile-link" href="${p.url}" target="_blank" rel="noopener">${p.url.replace('https://','')}</a>` +
         `<span class="tile-access">${t.access_note}</span>` +
-        `<span class="tile-contact">${t.contact_prefix} <a class="tile-link" href="https://t.me/awitalii" target="_blank" rel="noopener" style="display:inline">@awitalii</a></span>` +
+        `<span class="tile-contact">${t.contact_prefix} ` +
+          `<a class="tile-link" href="https://t.me/awitalii" target="_blank" rel="noopener" ` +
+          `style="display:inline-flex;align-items:center;gap:3px">${tgIcon}@awitalii</a></span>` +
       `</div>`;
 
     grid.appendChild(tile);
