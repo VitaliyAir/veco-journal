@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IT-компании России · VEco Journal</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@400;500;600&display=swap">
+<style>
+:root {
+  --bg:          #F5F4F1;
+  --surface:     #FFFFFF;
+  --fg:          #1C1B19;
+  --fg-muted:    #706D64;
+  --border:      #DDD9D0;
+  --accent:      #2D5A3D;
+  --accent-soft: #EBF2ED;
+  --shadow:      0 1px 4px rgba(0,0,0,.07);
+  --font-d: 'Playfair Display', Georgia, serif;
+  --font-u: 'Inter', system-ui, sans-serif;
+  --radius: 8px;
+  --tp:  #166534; --tp-bg: #DCFCE7;
+  --to:  #1D4ED8; --to-bg: #DBEAFE;
+  --ts:  #7C3AED; --ts-bg: #EDE9FE;
+  --ti:  #92400E; --ti-bg: #FEF3C7;
+  --tb:  #0F766E; --tb-bg: #CCFBF1;
+  --tg:  #4338CA; --tg-bg: #E0E7FF;
+  --ta:  #9D174D; --ta-bg: #FCE7F3;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:          #131311;
+    --surface:     #1D1C1A;
+    --fg:          #E8E5DF;
+    --fg-muted:    #928F86;
+    --border:      #2C2B27;
+    --accent:      #4A9060;
+    --accent-soft: #182A1E;
+    --shadow:      0 1px 4px rgba(0,0,0,.3);
+    --tp:  #86EFAC; --tp-bg: #14532D;
+    --to:  #93C5FD; --to-bg: #1E3A5F;
+    --ts:  #C4B5FD; --ts-bg: #2E1065;
+    --ti:  #FCD34D; --ti-bg: #78350F;
+    --tb:  #5EEAD4; --tb-bg: #134E4A;
+    --tg:  #A5B4FC; --tg-bg: #312E81;
+    --ta:  #F9A8D4; --ta-bg: #500724;
+    color-scheme: dark;
+  }
+}
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-u);
+  font-size: 14px;
+  line-height: 1.6;
+}
+.outer {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding-left:  max(16px, env(safe-area-inset-left,  0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28px 0 20px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 32px;
+}
+.site-title { font-family: var(--font-d); font-size: 1.4rem; font-weight: 600; color: var(--fg); text-decoration: none; letter-spacing: -.02em; }
+.site-title em { font-style: normal; color: var(--accent); }
+.back-btn { display:inline-flex; align-items:center; gap:6px; padding:6px 14px;
+  border:1px solid var(--accent); border-radius:20px; color:var(--accent);
+  font-size:.85rem; font-weight:500; text-decoration:none; white-space:nowrap;
+  transition: background .12s, color .12s; }
+.back-btn:hover { background:var(--accent); color:#fff; }
+
+.page-header { margin-bottom: 24px; }
+.page-header h1 { font-family: var(--font-d); font-size: 1.65rem; font-weight: 600; line-height: 1.25; color: var(--fg); margin: 0 0 14px; text-wrap: balance; }
+.goal { font-size: .95rem; color: var(--fg); max-width: 680px; margin: 0 0 12px; }
+.goal b { font-weight: 600; }
+.page-lead { font-size: .875rem; color: var(--fg-muted); max-width: 680px; margin: 0 0 10px; }
+.as-of { font-size: .85rem; font-weight: 500; color: var(--fg); margin: 16px 0 12px; }
+.stats { display: flex; gap: 24px; flex-wrap: wrap; font-size: .82rem; color: var(--fg-muted); margin-bottom: 18px; }
+.stat-val { font-weight: 600; color: var(--fg); font-variant-numeric: tabular-nums; }
+
+.ctrl-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; align-items: center; }
+.search-input {
+  flex: 1 1 200px; min-width: 0;
+  padding: 7px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--fg);
+  font-family: var(--font-u);
+  font-size: .85rem;
+  outline: none;
+}
+.search-input:focus { border-color: var(--accent); }
+.chip-row { display: flex; gap: 5px; flex-wrap: wrap; }
+.chip {
+  padding: 3px 11px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--fg-muted);
+  font-family: var(--font-u);
+  font-size: .73rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all .12s;
+}
+.chip:hover { border-color: var(--accent); color: var(--accent); }
+.chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+.table-wrap { overflow-x: auto; margin-bottom: 36px; }
+table { width: 100%; min-width: 860px; border-collapse: collapse; background: var(--surface); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); border: 1px solid var(--border); }
+thead th {
+  text-align: left; padding: 9px 12px;
+  font-size: .67rem; font-weight: 600; text-transform: uppercase; letter-spacing: .09em;
+  color: var(--fg-muted); background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap; user-select: none;
+}
+thead th[data-col] { cursor: pointer; }
+thead th[data-col]:hover { color: var(--fg); }
+thead th.sorted { color: var(--accent); }
+tbody tr { border-bottom: 1px solid var(--border); }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: var(--bg); }
+td { padding: 9px 12px; vertical-align: middle; }
+.td-num { color: var(--fg-muted); font-variant-numeric: tabular-nums; font-size: .8rem; width: 36px; }
+.td-name { font-weight: 600; min-width: 150px; }
+.td-name a { color: var(--fg); text-decoration: none; }
+.td-name a:hover { color: var(--accent); text-decoration: underline; }
+.td-city { color: var(--fg-muted); font-size: .85rem; white-space: nowrap; }
+.td-muted { color: var(--fg-muted); font-size: .82rem; }
+.td-tech { font-size: .8rem; color: var(--accent); min-width: 140px; }
+.td-src { font-size: .78rem; color: var(--fg-muted); min-width: 110px; }
+.vac-yes { display:inline-block; padding:1px 8px; border-radius:4px; font-size:.7rem; font-weight:600; background:var(--accent-soft); color:var(--accent); }
+.vac-no  { display:inline-block; padding:1px 8px; border-radius:4px; font-size:.7rem; color:var(--fg-muted); background:var(--bg); border:1px solid var(--border); }
+.vac-arch { display:inline-block; padding:1px 8px; border-radius:4px; font-size:.7rem; font-weight:600; white-space:nowrap; color:var(--fg-muted); background:var(--bg); border:1px dashed var(--fg-muted); }
+.type-tag { display:inline-block; padding:1px 8px; border-radius:4px; font-size:.7rem; font-weight:600; white-space:nowrap; }
+.t-product   { color:var(--tp); background:var(--tp-bg); }
+.t-outsource { color:var(--to); background:var(--to-bg); }
+.t-startup   { color:var(--ts); background:var(--ts-bg); }
+.t-integr    { color:var(--ti); background:var(--ti-bg); }
+.t-bank      { color:var(--tb); background:var(--tb-bg); }
+.t-state     { color:var(--tg); background:var(--tg-bg); }
+.t-outstaf   { color:var(--ta); background:var(--ta-bg); }
+
+.message { padding: 40px; text-align: center; color: var(--fg-muted); font-size: .9rem; }
+
+.legend { display:flex; gap:14px; flex-wrap:wrap; font-size:.78rem; color:var(--fg-muted); padding-bottom:48px; }
+.leg-item { display:flex; align-items:center; gap:5px; }
+</style>
+</head>
+<body>
+<div class="outer">
+  <header class="site-header">
+    <a class="site-title" href="/veco-journal/">V<em>Eco</em>-Journal</a>
+    <a class="back-btn" href="/veco-journal/#llm-rf-it-market-analysis">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+      Назад к статье
+    </a>
+  </header>
+
+  <div class="page-header">
+    <h1>Российский ИТ-рынок: срез на основе открытых данных</h1>
+    <p class="as-of">Срез актуален на <span id="updated">…</span></p>
+    <p class="page-lead">Не является официальным реестром. Информация может быть неполной или устаревшей.</p>
+    <p class="page-lead">Если вы обнаружили информацию о вашей компании и считаете, что она неточна или её упоминание нежелательно — напишите мне в [телеграм-контакт], и я удалю или скорректирую запись. Если, наоборот, хотите, чтобы ваша компания появилась в списке — тоже напишите туда же.</p>
+    <p class="goal">В срезе: <span class="stat-val" id="total">…</span> компаний, из них <span class="stat-val" id="total-vac">…</span> — с вакансиями.</p>
+  </div>
+
+  <div class="ctrl-row">
+    <input class="search-input" id="search" type="search" placeholder="Поиск по названию, городу, стеку, источнику… (например, .NET)" autocomplete="off">
+  </div>
+  <div class="ctrl-row" style="margin-bottom:6px">
+    <div class="chip-row" id="city-chips"></div>
+  </div>
+  <div class="ctrl-row" style="margin-bottom:6px">
+    <div class="chip-row" id="type-chips"></div>
+  </div>
+  <div class="ctrl-row" style="margin-bottom:16px; column-gap:20px">
+    <div class="chip-row" id="vac-chips"></div>
+    <div class="chip-row" id="arch-chips"></div>
+  </div>
+  <div class="stats">
+    <span>Показано: <span class="stat-val" id="count">0</span></span>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th class="td-num">#</th>
+          <th data-col="name">Название <span class="si">↕</span></th>
+          <th data-col="city">Город <span class="si">↕</span></th>
+          <th data-col="type">Тип <span class="si">↕</span></th>
+          <th>Размер</th>
+          <th>Стек</th>
+          <th>Источник</th>
+          <th data-col="vacancies">Вакансии <span class="si">↕</span></th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div class="message" id="message">Загрузка данных…</div>
+  </div>
+
+  <div class="legend">
+    <span class="leg-item"><span class="type-tag t-product">Продукт</span> — собственный продукт/платформа</span>
+    <span class="leg-item"><span class="type-tag t-outsource">Аутсорс</span> — разработка под заказ</span>
+    <span class="leg-item"><span class="type-tag t-startup">Стартап</span> — молодая продуктовая компания</span>
+    <span class="leg-item"><span class="type-tag t-integr">Интегратор</span> — системная интеграция</span>
+    <span class="leg-item"><span class="type-tag t-bank">Банк/Финтех</span> — IT банков и финтеха</span>
+    <span class="leg-item"><span class="type-tag t-state">Государственный</span> — госсектор</span>
+    <span class="leg-item"><span class="type-tag t-outstaf">Аутстаф</span> — предоставление специалистов</span>
+  </div>
+</div>
+
+<script>
+const TYPE_CLASS = {
+  'Продукт':'t-product', 'Аутсорс':'t-outsource', 'Стартап':'t-startup', 'Интегратор':'t-integr',
+  'Банк/Финтех':'t-bank', 'Государственный':'t-state', 'Аутстаф':'t-outstaf',
+};
+const TYPE_ORDER = Object.keys(TYPE_CLASS);
+
+let ALL = [];
+let fCity='Все', fType='Все', fVac='Все', fArch='current', query='', sortCol='name', sortAsc=true;
+const tbody = document.getElementById('tbody');
+const messageEl = document.getElementById('message');
+
+const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const hasUrl = d => d.url && d.url !== '-';
+const dash = v => (v === undefined || v === null || v === '') ? '-' : v;
+
+function formatDate(iso) {
+  const d = new Date(iso);
+  return isNaN(d) ? esc(iso) : d.toLocaleDateString('ru-RU', { day:'numeric', month:'long', year:'numeric' });
+}
+
+function buildChips(id, items, getCur, set, labelMap) {
+  const el = document.getElementById(id);
+  items.forEach(v => {
+    const b = document.createElement('button');
+    b.className = 'chip' + (v===getCur()?' active':'');
+    b.textContent = labelMap ? (labelMap[v]||v) : v;
+    b.onclick = () => { set(v); el.querySelectorAll('.chip').forEach(c=>c.classList.remove('active')); b.classList.add('active'); render(); };
+    el.appendChild(b);
+  });
+}
+
+document.getElementById('search').addEventListener('input', e=>{ query=e.target.value.toLowerCase(); render(); });
+
+document.querySelectorAll('thead th[data-col]').forEach(th => {
+  th.onclick = () => {
+    const c = th.dataset.col;
+    if (sortCol===c) sortAsc=!sortAsc; else { sortCol=c; sortAsc=true; }
+    document.querySelectorAll('thead th').forEach(t=>t.classList.remove('sorted'));
+    th.classList.add('sorted');
+    render();
+  };
+});
+
+function render() {
+  const rows = ALL.filter(d => {
+    if ((fArch==='archived') !== (d.archived===true)) return false;
+    if (fCity!=='Все' && d.city!==fCity) return false;
+    if (fType!=='Все' && d.type!==fType) return false;
+    if (fVac==='yes' && !d.vacancies) return false;
+    if (query) {
+      const hay = [d.name, d.city, d.url, d.type, d.size, d.tech, d.source].join(' ').toLowerCase();
+      if (!hay.includes(query)) return false;
+    }
+    return true;
+  });
+  rows.sort((a,b) => {
+    if (sortCol==='vacancies') {
+      const r = (a.vacancies===b.vacancies) ? 0 : a.vacancies ? -1 : 1;
+      return sortAsc ? r : -r;
+    }
+    const va = String(a[sortCol]||'').toLowerCase();
+    const vb = String(b[sortCol]||'').toLowerCase();
+    return sortAsc ? va.localeCompare(vb,'ru') : vb.localeCompare(va,'ru');
+  });
+  tbody.innerHTML = rows.map((d,i)=>`
+    <tr>
+      <td class="td-num">${i+1}</td>
+      <td class="td-name">${hasUrl(d) ? `<a href="https://${esc(d.url)}" target="_blank" rel="noopener">${esc(d.name)}</a>` : esc(d.name)}</td>
+      <td class="td-city">${esc(d.city)}</td>
+      <td><span class="type-tag ${TYPE_CLASS[d.type]||'t-product'}">${esc(d.type)}</span></td>
+      <td class="td-muted">${esc(dash(d.size))}</td>
+      <td class="td-tech">${esc(dash(d.tech))}</td>
+      <td class="td-src">${esc(dash(d.source))}</td>
+      <td>${d.archived ? '<span class="vac-arch">Ушла с рынка</span>' : d.vacancies ? '<span class="vac-yes">Есть</span>' : '<span class="vac-no">Уточнить</span>'}</td>
+    </tr>`).join('');
+  messageEl.textContent = 'Ничего не найдено — попробуйте изменить фильтры.';
+  messageEl.hidden = rows.length > 0;
+  document.getElementById('count').textContent = rows.length;
+}
+
+fetch('article-map-it-companies.json')
+  .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+  .then(j => {
+    const latest = new Map();
+    for (const d of j.companies) {
+      const cur = latest.get(d.name);
+      if (!cur || String(d.lastUpdated||'') >= String(cur.lastUpdated||'')) latest.set(d.name, d);
+    }
+    ALL = [...latest.values()];
+    const current = ALL.filter(d => d.archived !== true);
+    const asOf = j.companies.map(d => String(d.lastUpdated||'')).sort().pop();
+    document.getElementById('updated').textContent = asOf ? formatDate(asOf) : '-';
+    document.getElementById('total').textContent = current.length;
+    document.getElementById('total-vac').textContent = current.filter(d=>d.vacancies).length;
+    const types = [...new Set(ALL.map(d=>d.type))]
+      .sort((a,b) => (TYPE_ORDER.indexOf(a)+1||99) - (TYPE_ORDER.indexOf(b)+1||99));
+    const cities = [...new Set(ALL.map(d=>d.city))].sort((a,b)=>(a==='-')-(b==='-'));
+    buildChips('city-chips', ['Все', ...cities], ()=>fCity, v=>{fCity=v;}, {'-':'Город не указан'});
+    buildChips('type-chips', ['Все', ...types], ()=>fType, v=>{fType=v;});
+    buildChips('vac-chips',  ['Все','yes'], ()=>fVac, v=>{fVac=v;}, {Все:'Все вакансии', yes:'Есть вакансии'});
+    buildChips('arch-chips', ['current','archived'], ()=>fArch, v=>{fArch=v;}, {current:'На рынке', archived:'Ушедшие с рынка'});
+    render();
+  })
+  .catch(err => {
+    messageEl.textContent = 'Не удалось загрузить данные (' + err.message + ').';
+    messageEl.hidden = false;
+  });
+</script>
+</body>
+</html>

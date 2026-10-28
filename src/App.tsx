@@ -8,6 +8,7 @@ import PortfolioGrid from './components/PortfolioGrid';
 import AboutPanel from './components/AboutPanel';
 import Milestones from './components/Milestones';
 import { portfolio } from './data/portfolio';
+import { articles } from './data/articles';
 import type { SidebarLink, TabId } from './types';
 
 const TABS: TabId[] = ['home', 'articles', 'portfolio', 'about'];
@@ -15,12 +16,19 @@ const TABS: TabId[] = ['home', 'articles', 'portfolio', 'about'];
 const portfolioLinks: SidebarLink[] = portfolio.map(p => ({ name: p.name, url: p.github }));
 
 export default function App() {
-  const [tab, setTab] = useState<TabId>('home');
+  const [tab, setTab] = useState<TabId>(() =>
+    articles.some(a => `#${a.slug}` === window.location.hash) ? 'articles' : 'home');
+
+  const changeTab = (t: TabId) => {
+    if (t !== 'articles' && window.location.hash)
+      history.replaceState(null, '', window.location.pathname + window.location.search);
+    setTab(t);
+  };
 
   return (
     <>
       <Header />
-      <TabNav tabs={TABS} active={tab} onChange={setTab} />
+      <TabNav tabs={TABS} active={tab} onChange={changeTab} />
       <div className="tab-panel active" id={`panel-${tab}`} role="tabpanel">
         {tab === 'home' ? (
           <div className="home-grid">

@@ -59,3 +59,19 @@ export interface Milestone {
   title: Localized;
   desc: Localized;
 }
+
+export interface ArticleSection {
+  heading?: Localized;
+  paragraphs: Localized<string[]>;
+  list?: { text: Localized; link: { text: Localized; url: string } }[];
+  link?: { text: Localized; url: string };
+}
+
+export interface Article {
+  slug: string;
+  date: Date;
+  tag: Localized;
+  title: Localized;
+  lead: Localized;
+  sections: ArticleSection[];
+}
