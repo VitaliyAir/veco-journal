@@ -2,7 +2,7 @@ import type { Lang } from '../types';
 
 const ru = {
   tab_home:            'Новости и достижения',
-  tab_articles:        'Статьи',
+  tab_articles:        'Статьи и заметки',
   tab_portfolio:       'Портфолио',
   tab_about:           'Об авторе',
   links_label:         'Ссылки',
@@ -43,7 +43,7 @@ export const translations: Record<Lang, Record<TranslationKey, string>> = {
   ru,
   en: {
     tab_home:            'News & Achievements',
-    tab_articles:        'Articles',
+    tab_articles:        'Articles & Notes',
     tab_portfolio:       'Portfolio',
     tab_about:           'About Author',
     links_label:         'Links',

@@ -15,7 +15,7 @@ function ArticleReader({ article, onBack }: { article: Article; onBack: () => vo
   return (
     <div className="article-reader">
       <button className="article-back" onClick={onBack}>
-        ← {lang === 'ru' ? 'Все статьи' : 'All articles'}
+        ← {lang === 'ru' ? 'Все статьи и заметки' : 'All articles & notes'}
       </button>
       <div className="news-meta">
         <span className="tile-tag">{article.tag[lang]}</span>
@@ -90,7 +90,9 @@ export default function ArticlesPanel() {
                 {a.lead[lang]}
               </p>
               <button className="article-read-btn" onClick={() => setOpen(a)}>
-                {lang === 'ru' ? 'Читать статью' : 'Read article'}
+                {a.kind === 'note'
+                  ? (lang === 'ru' ? 'Читать заметку' : 'Read note')
+                  : (lang === 'ru' ? 'Читать статью' : 'Read article')}
               </button>
             </div>
           </article>

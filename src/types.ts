@@ -69,6 +69,7 @@ export interface ArticleSection {
 
 export interface Article {
   slug: string;
+  kind: 'article' | 'note';
   date: Date;
   tag: Localized;
   title: Localized;

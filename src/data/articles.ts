@@ -3,8 +3,9 @@ import type { Article } from '../types';
 export const articles: Article[] = [
   {
     slug: 'llm-rf-it-market-analysis',
+    kind: 'note',
     date: new Date('2026-10-28'),
-    tag: { ru: 'Анализ', en: 'Analysis' },
+    tag: { ru: 'Заметка', en: 'Note' },
     title: {
       ru: 'Российский ИТ-рынок: срез на основе открытых данных',
       en: 'Russian IT Market: A Snapshot from Open Data',

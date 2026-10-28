@@ -77,6 +77,9 @@ body {
   font-size:.85rem; font-weight:500; text-decoration:none; white-space:nowrap;
   transition: background .12s, color .12s; }
 .back-btn:hover { background:var(--accent); color:#fff; }
+.tg-link { display:inline-flex; align-items:center; gap:4px; color:var(--accent);
+  font-weight:500; text-decoration:none; white-space:nowrap; vertical-align:bottom; }
+.tg-link:hover { text-decoration:underline; }
 
 .page-header { margin-bottom: 24px; }
 .page-header h1 { font-family: var(--font-d); font-size: 1.65rem; font-weight: 600; line-height: 1.25; color: var(--fg); margin: 0 0 14px; text-wrap: balance; }
@@ -165,7 +168,7 @@ td { padding: 9px 12px; vertical-align: middle; }
     <a class="site-title" href="/veco-journal/">V<em>Eco</em>-Journal</a>
     <a class="back-btn" href="/veco-journal/#llm-rf-it-market-analysis">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
-      Назад к статье
+      Назад к заметке
     </a>
   </header>
 
@@ -173,7 +176,7 @@ td { padding: 9px 12px; vertical-align: middle; }
     <h1>Российский ИТ-рынок: срез на основе открытых данных</h1>
     <p class="as-of">Срез актуален на <span id="updated">…</span></p>
     <p class="page-lead">Не является официальным реестром. Информация может быть неполной или устаревшей.</p>
-    <p class="page-lead">Если вы обнаружили информацию о вашей компании и считаете, что она неточна или её упоминание нежелательно — напишите мне в [телеграм-контакт], и я удалю или скорректирую запись. Если, наоборот, хотите, чтобы ваша компания появилась в списке — тоже напишите туда же.</p>
+    <p class="page-lead">Если вы обнаружили информацию о вашей компании и считаете, что она неточна или её упоминание нежелательно — напишите мне в <a class="tg-link" href="https://t.me/awitalii" target="_blank" rel="noopener"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#26A5E4" aria-hidden="true"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248-2.05 9.657c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.48 14.697l-2.95-.924c-.642-.2-.655-.642.136-.953l11.527-4.447c.537-.194 1.006.131.37.875z"/></svg>@awitalii</a>, и я удалю или скорректирую запись. Если, наоборот, хотите, чтобы ваша компания появилась в списке — тоже напишите туда же.</p>
     <p class="goal">В срезе: <span class="stat-val" id="total">…</span> компаний, из них <span class="stat-val" id="total-vac">…</span> — с вакансиями.</p>
   </div>
 
