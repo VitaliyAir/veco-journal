@@ -1,0 +1,7 @@
+{
+  "siteName": "VEco Journal",
+  "urls": {
+    "dev": "http://localhost:5179",
+    "prod": "https://vitaliyair.github.io/veco-journal"
+  }
+}
