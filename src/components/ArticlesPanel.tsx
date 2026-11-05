@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useLang } from '../i18n/LangContext';
 import PageHeader from './PageHeader';
 import { articles } from '../data/articles';
@@ -8,6 +8,27 @@ function formatDate(date: Date, lang: string) {
   return date.toLocaleDateString(lang === 'ru' ? 'ru-RU' : 'en-GB', {
     year: 'numeric', month: 'long', day: 'numeric',
   });
+}
+
+/** Turns "[label](https://…)" inside plain paragraphs into real links. */
+const LINK_RE = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
+
+function withLinks(text: string) {
+  const parts: ReactNode[] = [];
+  let last = 0;
+  let match: RegExpExecArray | null;
+  LINK_RE.lastIndex = 0;
+  while ((match = LINK_RE.exec(text)) !== null) {
+    if (match.index > last) parts.push(text.slice(last, match.index));
+    parts.push(
+      <a key={match.index} href={match[2]} target="_blank" rel="noopener noreferrer">
+        {match[1]}
+      </a>,
+    );
+    last = match.index + match[0].length;
+  }
+  if (last < text.length) parts.push(text.slice(last));
+  return parts;
 }
 
 function ArticleReader({ article, onBack }: { article: Article; onBack: () => void }) {
@@ -27,7 +48,7 @@ function ArticleReader({ article, onBack }: { article: Article; onBack: () => vo
       {article.sections.map((s, i) => (
         <section key={i} className="article-section">
           {s.heading && <h3>{s.heading[lang]}</h3>}
-          {s.paragraphs[lang].map((p, j) => <p key={j}>{p}</p>)}
+          {s.paragraphs && s.paragraphs[lang].map((p, j) => <p key={j}>{withLinks(p)}</p>)}
           {s.list && (
             <ul className="article-links">
               {s.list.map((item, j) => (
@@ -40,10 +61,26 @@ function ArticleReader({ article, onBack }: { article: Article; onBack: () => vo
               ))}
             </ul>
           )}
+          {s.image && (
+            <figure className="article-figure">
+              <img src={s.image.src} alt={s.image.caption[lang]} loading="lazy" />
+              <figcaption>{s.image.caption[lang]}</figcaption>
+            </figure>
+          )}
+          {s.definitions && (
+            <dl className="article-defs">
+              {s.definitions.map((d, j) => (
+                <div className="article-def" key={j}>
+                  <dt>{d.term[lang]}</dt>
+                  <dd>{withLinks(d.text[lang])}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
           {s.link && (
             <a
               className="article-ext-link"
-              href={s.link.url}
+              href={s.link.url[lang]}
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -87,7 +124,7 @@ export default function ArticlesPanel() {
             </h3>
             <div className="news-card">
               <p style={{ margin: 0, color: 'var(--fg-muted)', lineHeight: 1.6 }}>
-                {a.lead[lang]}
+                {a.lead[lang].split('\n')[0]}
               </p>
               <button className="article-read-btn" onClick={() => setOpen(a)}>
                 {a.kind === 'note'

@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build:roadmaps": "node tools/build-roadmaps.mjs",
+    "build": "npm run build:roadmaps && tsc && vite build",
     "typecheck": "tsc",
     "preview": "vite preview"
   },

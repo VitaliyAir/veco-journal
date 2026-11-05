@@ -62,9 +62,14 @@ export interface Milestone {
 
 export interface ArticleSection {
   heading?: Localized;
-  paragraphs: Localized<string[]>;
+  paragraphs?: Localized<string[]>;
   list?: { text: Localized; link: { text: Localized; url: string } }[];
-  link?: { text: Localized; url: string };
+  /** Term/description pairs, e.g. the maturity criteria. */
+  definitions?: { term: Localized; text: Localized }[];
+  /** `url` is localized: an English reader may need a different document than a Russian one. */
+  link?: { text: Localized; url: Localized };
+  /** Illustration placed inside the article. */
+  image?: { src: string; caption: Localized };
 }
 
 export interface Article {

@@ -303,7 +303,7 @@ body {
 .page-desc { font-size: .9rem; color: var(--fg-muted); line-height: 1.6; margin: 0; }
 
 /* ── Article reader ── */
-.article-reader { max-width: 660px; }
+.article-reader { max-width: 1320px; }
 
 .article-back {
   background: none; border: none; padding: 0;
@@ -325,6 +325,7 @@ body {
   margin-bottom: 32px;
   border-bottom: 1px solid var(--border);
   padding-bottom: 24px;
+  white-space: pre-line;
 }
 
 .article-section { margin-bottom: 28px; }
@@ -333,9 +334,26 @@ body {
   color: var(--fg); margin: 0 0 10px;
 }
 .article-section p { color: var(--fg); line-height: 1.75; margin: 0 0 10px; }
+.article-section p a, .article-def dd a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+.article-section p a:hover, .article-def dd a:hover { opacity: .8; }
 .article-links { margin: 0 0 10px; padding-left: 1.2em; line-height: 1.75; color: var(--fg); }
 .article-links li { margin-bottom: 4px; }
 .article-links a { color: var(--accent); }
+
+.article-defs { margin: 6px 0 10px; }
+.article-figure { margin: 8px 0 24px; text-align: center; }
+.article-figure img {
+  width: 100%; max-width: 720px; height: auto;
+  border: 1px solid var(--border); border-radius: 10px; background: var(--surface);
+}
+.article-figure figcaption { margin-top: 8px; font-size: .85rem; color: var(--fg-muted); line-height: 1.6; }
+.article-def { margin-bottom: 16px; }
+.article-def dt {
+  font-weight: 600; color: var(--fg); margin-bottom: 3px;
+}
+.article-def dd {
+  margin: 0; color: var(--fg-muted); line-height: 1.7;
+}
 
 .article-ext-link {
   display: inline-block; margin-top: 10px;
