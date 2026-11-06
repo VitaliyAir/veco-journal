@@ -10,8 +10,7 @@ export const aboutIntro: Localized = {
   en: 'Fullstack .NET Developer / Enterprise Developer with 17+ years of experience.',
 };
 
-export const aboutItems: AboutItem[] = [
-  {
+export const aboutItems: AboutItem[] = [  {
     label: { ru: 'Специализация', en: 'Specialization' },
     body: {
       ru: 'Проектирование архитектуры с нуля, разработка корпоративных B2B-систем (нефтегаз, геологоразведка, промышленность), модернизация легаси-кода.',
@@ -35,8 +34,37 @@ export const aboutItems: AboutItem[] = [
   {
     label: { ru: 'Языки', en: 'Languages' },
     body: {
-      ru: 'Английский (C2), Французский (C1).',
-      en: 'English (C2), French (C1).',
+      ru: 'Английский (B2), Французский (A2).',
+      en: 'English (B2), French (A2).',
     },
   },
 ];
+
+/** Closing block: the author is currently open to work, with a direct contact. */
+export const openToOffers: {
+  title: Localized;
+  cases: Localized[];
+  contactLabel: Localized;
+  telegram: { handle: string; url: string };
+  profiles: { label: Localized; url: string }[];
+} = {
+  title: { ru: 'Открыт к предложениям', en: 'Open to offers' },
+  cases: [
+    {
+      ru: 'Есть бизнес и нужна консультация или приложение под ваши требования — помогу с оценкой, архитектурой и разработкой.',
+      en: 'You have a business and need advice, or an application built to your requirements — I can help with scoping, architecture and delivery.',
+    },
+    {
+      ru: 'Вы ищете Senior-специалиста в IT-компанию на проект с .NET-стеком — сейчас открыт для вакансий. Напишите в Telegram, профили также есть на HH.ru и Хабр Карьере.',
+      en: 'You are hiring a senior specialist for a .NET project — I am currently open to offers. Message me on Telegram; my profiles are also on HH.ru and Habr Career.',
+    },
+  ],
+  contactLabel: { ru: 'Написать в Telegram', en: 'Message me on Telegram' },
+  telegram: { handle: '@awitalii', url: 'https://t.me/awitalii' },
+  profiles: [
+    {
+      label: { ru: 'Резюме на HH.ru', en: 'Resume on HH.ru' },
+      url: 'https://spb.hh.ru/resume/9953303bff0110c8690039ed1f4138566f4c54',
+    },
+  ],
+};
