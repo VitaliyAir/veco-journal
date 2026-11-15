@@ -3,6 +3,34 @@ import type { NewsItem } from '../types';
 // Newest first.
 export const news: NewsItem[] = [
   {
+    date: new Date('2026-11-15'),
+    title: {
+      ru: 'Визуализируем научные факты: астрономия для детей',
+      en: 'Visualizing Science Facts: astronomy for kids',
+    },
+    type: 'projects',
+    intro: {
+      ru: 'Открываю серию «Визуализируем научные факты». Первый выпуск — из астрономии: две модели на HTML + JS, которые можно приближать и вращать. Вторая сделана для детворы — показать, как Луна облетает Землю, а Земля — Солнце.',
+      en: 'Opening the "Visualizing Science Facts" series. The first issue comes from astronomy: two HTML + JS models you can zoom and rotate. The second one is made for kids — to show how the Moon goes around the Earth while the Earth goes around the Sun.',
+    },
+    projects: [
+      {
+        name: 'Солнечная система в сжатом масштабе',
+        desc: {
+          ru: 'Нелинейный масштаб: p_r и p_s сжимают расстояния и размеры тел, k_r растягивает орбиты. Клик по планете открывает карточку с массой, наклоном оси и периодом вращения.',
+          en: 'A non-linear scale: p_r and p_s compress distances and body sizes, k_r stretches the orbits. Clicking a planet opens its mass, axial tilt and rotation period.',
+        },
+      },
+      {
+        name: 'Земля — Луна — Солнце',
+        desc: {
+          ru: 'Упрощённая модель для детей: видно, как Луна вращается вокруг Земли, а Земля — вокруг Солнца. Сцену можно вращать и приближать.',
+          en: 'A simplified model for kids: see the Moon orbiting the Earth while the Earth orbits the Sun. Rotate and zoom the scene freely.',
+        },
+      },
+    ],
+  },
+  {
     date: new Date('2026-11-05'),
     title: {
       ru: 'Уровни понимания .NET инфраструктуры. Дорожная карта совершенствования',

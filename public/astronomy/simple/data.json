@@ -1,0 +1,69 @@
+json
+{
+  "auKm": 149597870,
+  "sunRadiusKm": 696340,
+  "planets": [
+    {
+      "key": "mercury", "radiusKm": 2439.7, "aAu": 0.387, "color": "#9c9c9c",
+      "massEarth": 0.0553, "diameterKm": 4879, "gravityMs2": 3.7,
+      "axisTiltDeg": 0.1, "rotationDir": "prograde",
+      "rotationPeriodHours": 1407.6, "orbitalPeriodDays": 87.97,
+      "orbitalSpeedKmS": 47.87, "moonsCount": 0, "moons": []
+    },
+    {
+      "key": "venus", "radiusKm": 6051.8, "aAu": 0.723, "color": "#e6c07a",
+      "massEarth": 0.815, "diameterKm": 12104, "gravityMs2": 8.9,
+      "axisTiltDeg": 177.3, "rotationDir": "retrograde",
+      "rotationPeriodHours": 5832.5, "orbitalPeriodDays": 224.70,
+      "orbitalSpeedKmS": 35.02, "moonsCount": 0, "moons": []
+    },
+    {
+      "key": "earth", "radiusKm": 6371.0, "aAu": 1.000, "color": "#3d7fd6",
+      "massEarth": 1.000, "diameterKm": 12756, "gravityMs2": 9.8,
+      "axisTiltDeg": 23.45, "rotationDir": "prograde",
+      "rotationPeriodHours": 23.9345, "orbitalPeriodDays": 365.26,
+      "orbitalSpeedKmS": 29.78, "moonsCount": 1, "moons": ["Moon"]
+    },
+    {
+      "key": "mars", "radiusKm": 3389.5, "aAu": 1.524, "color": "#c1440e",
+      "massEarth": 0.107, "diameterKm": 6792, "gravityMs2": 3.7,
+      "axisTiltDeg": 25.19, "rotationDir": "prograde",
+      "rotationPeriodHours": 24.623, "orbitalPeriodDays": 686.98,
+      "orbitalSpeedKmS": 24.08, "moonsCount": 2, "moons": ["Phobos", "Deimos"]
+    },
+    {
+      "key": "jupiter", "radiusKm": 69911, "aAu": 5.203, "color": "#d8ca9d",
+      "massEarth": 317.83, "diameterKm": 142984, "gravityMs2": 23.1,
+      "axisTiltDeg": 3.12, "rotationDir": "prograde",
+      "rotationPeriodHours": 9.925, "orbitalPeriodDays": 4332.59,
+      "orbitalSpeedKmS": 13.07, "moonsCount": 95,
+      "moons": ["Io","Europa","Ganymede","Callisto","Amalthea","Himalia","Elara","Pasiphae","Sinope","Lysithea","Carme","Ananke","Leda","Thebe","Adrastea","Metis","Callirrhoe","Themisto","Megaclite","Taygete","Chaldene","Harpalyke","Kalyke","Iocaste","Erinome","Isonoe","Praxidike","Autonoe","Thyone","Hermippe","Aitne","Eurydome","Euanthe","Euporie","Orthosie","Sponde","Kale","Pasithee","Hegemone","Mneme","Aoede","Thelxinoe","Arche","Kallichore","Helike","Carpo","Eukelade","Cyllene","Kore","Herse"]
+    },
+    {
+      "key": "saturn", "radiusKm": 58232, "aAu": 9.537, "color": "#e3d6a7",
+      "massEarth": 95.162, "diameterKm": 120536, "gravityMs2": 9.0,
+      "axisTiltDeg": 26.73, "rotationDir": "prograde",
+      "rotationPeriodHours": 10.50, "orbitalPeriodDays": 10759.22,
+      "orbitalSpeedKmS": 9.69, "moonsCount": 274,
+      "ring": { "innerKm": 74500, "outerKm": 140200, "tiltDeg": 26.7 },
+      "moons": ["Titan","Rhea","Iapetus","Dione","Tethys","Enceladus","Mimas","Hyperion","Phoebe","Janus","Epimetheus","Prometheus","Pandora","Helene","Telesto","Calypso","Atlas","Pan","Daphnis","Aegaeon","Methone","Anthe","Pallene","Polydeuces","Kiviuq","Ijiraq","Paaliaq","Siarnaq","Tarqeq","Ymir","Skathi","Greip","Hyrrokkin","Mundilfari","Bergelmir","Narvi","Suttungr"]
+    },
+    {
+      "key": "uranus", "radiusKm": 25362, "aAu": 19.191, "color": "#9fe3e3",
+      "massEarth": 14.536, "diameterKm": 51118, "gravityMs2": 8.7,
+      "axisTiltDeg": 97.86, "rotationDir": "retrograde",
+      "rotationPeriodHours": 17.24, "orbitalPeriodDays": 30688.5,
+      "orbitalSpeedKmS": 6.81, "moonsCount": 28,
+      "ring": { "innerKm": 41800, "outerKm": 51200, "tiltDeg": 97.8 },
+      "moons": ["Titania","Oberon","Umbriel","Ariel","Miranda","Puck","Sycorax","Portia","Juliet","Belinda","Cressida","Rosalind","Desdemona","Bianca","Ophelia","Cordelia","Setebos","Prospero","Stephano","Caliban","Francisco","Margaret","Ferdinand","Perdita","Mab","Cupid","Trinculo"]
+    },
+    {
+      "key": "neptune", "radiusKm": 24622, "aAu": 30.069, "color": "#3f54ba",
+      "massEarth": 17.147, "diameterKm": 49528, "gravityMs2": 11.0,
+      "axisTiltDeg": 29.56, "rotationDir": "prograde",
+      "rotationPeriodHours": 16.11, "orbitalPeriodDays": 60182,
+      "orbitalSpeedKmS": 5.43, "moonsCount": 16,
+      "moons": ["Triton","Proteus","Nereid","Larissa","Galatea","Despina","Thalassa","Naiad","Halimede","Sao","Laomedeia","Psamathe","Neso","Hippocamp"]
+    }
+  ]
+}

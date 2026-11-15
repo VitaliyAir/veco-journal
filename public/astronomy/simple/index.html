@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Solar System — VisualizeIT</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<!-- Компас в главном окне -->
+<div id="global-compass">
+  <div class="compass-n">N</div>
+  <div class="compass-line"></div>
+  <div class="compass-s">S</div>
+</div>
+
+<div id="ui">
+  <strong id="ui-title">Non-linear scale</strong>
+  <label><span id="lbl-pr">Distance exponent p_r</span>: <input id="pr" type="range" min="0.2" max="1" step="0.01" value="0.5"><span class="val" id="prv">0.50</span></label>
+  <label><span id="lbl-ps">Size exponent p_s</span>: <input id="ps" type="range" min="0.2" max="1" step="0.01" value="0.5"><span class="val" id="psv">0.50</span></label>
+  <label><span id="lbl-kr">Distance scale k_r</span>: <input id="kr" type="range" min="0.2" max="3" step="0.01" value="1"><span class="val" id="krv">1.00</span></label>
+  <label class="check"><input id="showNames" type="checkbox"> <span id="lbl-names">Show orbits & names</span></label>
+  <div class="lang">
+    <span id="lbl-lang">Language:</span>
+    <button id="btn-en" class="active">EN</button>
+    <button id="btn-rus">RUS</button>
+  </div>
+</div>
+
+<div id="labels"></div>
+
+<div id="modal-overlay">
+  <div id="modal">
+    <div id="modal-header">
+      <span id="modal-title">Planet</span>
+      <button id="modal-close">✕</button>
+    </div>
+    <div id="modal-body">
+      <div id="modal-preview">
+        <canvas id="preview-canvas"></canvas>
+        <!-- Фиксированные подписи N/S -->
+        <div class="preview-axis-labels">
+          <div class="n">N</div>
+          <div class="s">S</div>
+        </div>
+        <div id="modal-preview-label"></div>
+      </div>
+      <div id="modal-info"></div>
+    </div>
+  </div>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+
+// ================================================================
+// 0. FALLBACK
+// ================================================================
+const FALLBACK = {
+  auKm: 149597870, sunRadiusKm: 696340,
+  planets: [
+    { key:'mercury', radiusKm:2439.7, aAu:0.387, color:'#9c9c9c', massEarth:0.0553, diameterKm:4879, gravityMs2:3.7, axisTiltDeg:0.1, rotationDir:'prograde', rotationPeriodHours:1407.6, orbitalPeriodDays:87.97, orbitalSpeedKmS:47.87, moonsCount:0, moons:[] },
+    { key:'venus', radiusKm:6051.8, aAu:0.723, color:'#e6c07a', massEarth:0.815, diameterKm:12104, gravityMs2:8.9, axisTiltDeg:177.3, rotationDir:'retrograde', rotationPeriodHours:5832.5, orbitalPeriodDays:224.70, orbitalSpeedKmS:35.02, moonsCount:0, moons:[] },
+    { key:'earth', radiusKm:6371.0, aAu:1.000, color:'#3d7fd6', massEarth:1.000, diameterKm:12756, gravityMs2:9.8, axisTiltDeg:23.45, rotationDir:'prograde', rotationPeriodHours:23.9345, orbitalPeriodDays:365.26, orbitalSpeedKmS:29.78, moonsCount:1, moons:['Moon'] },
+    { key:'mars', radiusKm:3389.5, aAu:1.524, color:'#c1440e', massEarth:0.107, diameterKm:6792, gravityMs2:3.7, axisTiltDeg:25.19, rotationDir:'prograde', rotationPeriodHours:24.623, orbitalPeriodDays:686.98, orbitalSpeedKmS:24.08, moonsCount:2, moons:['Phobos','Deimos'] },
+    { key:'jupiter', radiusKm:69911, aAu:5.203, color:'#d8ca9d', massEarth:317.83, diameterKm:142984, gravityMs2:23.1, axisTiltDeg:3.12, rotationDir:'prograde', rotationPeriodHours:9.925, orbitalPeriodDays:4332.59, orbitalSpeedKmS:13.07, moonsCount:95, moons:['Io','Europa','Ganymede','Callisto','Amalthea','Himalia','Elara','Pasiphae','Sinope','Lysithea','Carme','Ananke','Leda','Thebe','Adrastea','Metis'] },
+    { key:'saturn', radiusKm:58232, aAu:9.537, color:'#e3d6a7', massEarth:95.162, diameterKm:120536, gravityMs2:9.0, axisTiltDeg:26.73, rotationDir:'prograde', rotationPeriodHours:10.50, orbitalPeriodDays:10759.22, orbitalSpeedKmS:9.69, moonsCount:274, ring:{innerKm:74500,outerKm:140200,tiltDeg:26.7}, moons:['Titan','Rhea','Iapetus','Dione','Tethys','Enceladus','Mimas','Hyperion','Phoebe','Janus','Epimetheus','Prometheus','Pandora','Helene','Telesto','Calypso','Atlas','Pan','Daphnis'] },
+    { key:'uranus', radiusKm:25362, aAu:19.191, color:'#9fe3e3', massEarth:14.536, diameterKm:51118, gravityMs2:8.7, axisTiltDeg:97.86, rotationDir:'retrograde', rotationPeriodHours:17.24, orbitalPeriodDays:30688.5, orbitalSpeedKmS:6.81, moonsCount:28, ring:{innerKm:41800,outerKm:51200,tiltDeg:97.8}, moons:['Titania','Oberon','Umbriel','Ariel','Miranda','Puck','Sycorax','Portia','Juliet','Belinda','Cressida','Rosalind','Desdemona','Bianca','Ophelia','Cordelia'] },
+    { key:'neptune', radiusKm:24622, aAu:30.069, color:'#3f54ba', massEarth:17.147, diameterKm:49528, gravityMs2:11.0, axisTiltDeg:29.56, rotationDir:'prograde', rotationPeriodHours:16.11, orbitalPeriodDays:60182, orbitalSpeedKmS:5.43, moonsCount:16, moons:['Triton','Proteus','Nereid','Larissa','Galatea','Despina','Thalassa','Naiad'] }
+  ]
+};
+
+let DATA = FALLBACK;
+async function loadData() {
+  try {
+    const res = await fetch('./data.json', { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    DATA = await res.json();
+  } catch (e) {
+    console.warn('data.json not loaded (' + e.message + '), using fallback.');
+  }
+}
+
+// ================================================================
+// 1. ЛОКАЛИЗАЦИЯ
+// ================================================================
+const I18N = {
+  en: {
+    title:'Non-linear scale', pr:'Distance exponent p_r', ps:'Size exponent p_s', kr:'Distance scale k_r',
+    names:'Show orbits & names', lang:'Language:', previewLabel:'',
+    tableTitle:'Brief information', sun:'Sun',
+    distance:'Distance from Sun', orbitalPeriod:'Orbital period', orbitalSpeed:'Orbital speed',
+    mass:'Mass', diameter:'Diameter', gravity:'Surface gravity', axisTilt:'Axial tilt',
+    rotationDir:'Rotation direction', rotationPeriod:'Rotation period (1 rev)',
+    moonsCount:'Number of moons', moonsList:'Names',
+    au:'AU', km:'km', kmS:'km/s', earthMasses:'× Earth', ms2:'m/s²',
+    days:'days', years:'years', hours:'hours',
+    prograde:'Prograde (counterclockwise, from north)',
+    retrograde:'Retrograde (clockwise, from north)',
+    more:'more',
+    planetNames:{ mercury:'Mercury', venus:'Venus', earth:'Earth', mars:'Mars', jupiter:'Jupiter', saturn:'Saturn', uranus:'Uranus', neptune:'Neptune' }
+  },
+  rus: {
+    title:'Нелинейный масштаб', pr:'Показатель расстояния p_r', ps:'Показатель размера p_s', kr:'Масштаб расстояния k_r',
+    names:'Показывать орбиты и названия', lang:'Язык:', previewLabel:'',
+    tableTitle:'Краткая информация', sun:'Солнце',
+    distance:'Расстояние от Солнца', orbitalPeriod:'Период обращения', orbitalSpeed:'Линейная скорость',
+    mass:'Масса', diameter:'Диаметр', gravity:'Сила притяжения', axisTilt:'Наклон оси',
+    rotationDir:'Направление вращения', rotationPeriod:'Период вращения (1 об)',
+    moonsCount:'Количество спутников', moonsList:'Названия',
+    au:'а.е.', km:'км', kmS:'км/с', earthMasses:'× Земли', ms2:'м/с²',
+    days:'сут', years:'лет', hours:'ч',
+    prograde:'Прямое (против часовой, с севера)',
+    retrograde:'Обратное (по часовой, с севера)',
+    more:'ещё',
+    planetNames:{ mercury:'Меркурий', venus:'Венера', earth:'Земля', mars:'Марс', jupiter:'Юпитер', saturn:'Сатурн', uranus:'Уран', neptune:'Нептун' }
+  }
+};
+let currentLang = 'en';
+const t = k => I18N[currentLang][k];
+const planetName = k => I18N[currentLang].planetNames[k];
+
+// ================================================================
+// 2. СЦЕНА
+// ================================================================
+let renderer, labelRenderer, scene, camera, controls;
+let sun, glow, sunLabelDiv, sunLabel;
+let planetMeshes = [], orbitLines = [], ringMeshes = [], allLabels = [];
+let asteroidMesh = null;
+let stars = null; 
+let AU, SUN_RADIUS, D_REF, R_REF;
+
+const state = { pr:0.5, ps:0.5, kr:1.0, showNames:false };
+
+function visualDistance(aKm) { return Math.pow(aKm / D_REF, state.pr) * state.kr * 10; }
+function visualRadius(rKm) { return 0.25 + Math.pow(rKm / R_REF, state.ps) * 3.0; }
+
+// ================================================================
+// 3. ТЕКСТУРЫ И МАТЕРИАЛЫ
+// ================================================================
+function makeSpottedTexture(baseColorHex) {
+  const size = 256;
+  const c = document.createElement('canvas');
+  c.width = size; c.height = size;
+  const g = c.getContext('2d');
+  g.fillStyle = baseColorHex; g.fillRect(0, 0, size, size);
+  for (let i = 0; i < 60; i++) {
+    const x = Math.random() * size, y = Math.random() * size;
+    const r = 3 + Math.random() * 16;
+    g.fillStyle = Math.random() > 0.5 ? 'rgba(255,255,255,0.14)' : 'rgba(0,0,0,0.20)';
+    g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
+  }
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  return tex;
+}
+
+function makeGlowTexture() {
+  const s = 256, c = document.createElement('canvas');
+  c.width = c.height = s;
+  const g = c.getContext('2d');
+  const grad = g.createRadialGradient(s/2, s/2, 0, s/2, s/2, s/2);
+  grad.addColorStop(0,'rgba(255,220,120,1)');
+  grad.addColorStop(0.25,'rgba(255,180,60,0.6)');
+  grad.addColorStop(1,'rgba(255,140,0,0)');
+  g.fillStyle = grad; g.fillRect(0, 0, s, s);
+  return new THREE.CanvasTexture(c);
+}
+
+function makeRingTexture() {
+  const size = 512;
+  const c = document.createElement('canvas');
+  c.width = size; c.height = size;
+  const g = c.getContext('2d');
+  for (let i = 0; i < size; i++) {
+    const alpha = 0.2 + Math.random() * 0.6;
+    if (Math.random() > 0.1) {
+      g.fillStyle = `rgba(210, 190, 160, ${alpha})`;
+      g.fillRect(i, 0, 1, size);
+    }
+  }
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+// ================================================================
+// 4. INIT
+// ================================================================
+function initThree() {
+  renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setSize(innerWidth, innerHeight);
+  document.body.appendChild(renderer.domElement);
+
+  labelRenderer = new CSS2DRenderer({ element: document.getElementById('labels') });
+  labelRenderer.setSize(innerWidth, innerHeight);
+
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x000005);
+
+  camera = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, 0.01, 5000);
+  camera.position.set(0, 60, 120);
+
+  controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true; controls.dampingFactor = 0.08;
+
+  scene.add(new THREE.AmbientLight(0xffffff, 0.35));
+  scene.add(new THREE.PointLight(0xffffff, 3, 0, 0));
+
+  // --- ЗВЕЗДЫ ---
+  const starsGeometry = new THREE.BufferGeometry();
+  const starsCount = 5000;
+  const starsPositions = new Float32Array(starsCount * 3);
+
+  for (let i = 0; i < starsCount * 3; i += 3) {
+    const r = 1500 + Math.random() * 1500;
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.acos((Math.random() * 2) - 1);
+    starsPositions[i] = r * Math.sin(phi) * Math.cos(theta);
+    starsPositions[i + 1] = r * Math.sin(phi) * Math.sin(theta);
+    starsPositions[i + 2] = r * Math.cos(phi);
+  }
+  starsGeometry.setAttribute('position', new THREE.BufferAttribute(starsPositions, 3));
+  const starsMaterial = new THREE.PointsMaterial({
+    color: 0xffffff, size: 1.5, sizeAttenuation: true, transparent: true, opacity: 0.8
+  });
+  stars = new THREE.Points(starsGeometry, starsMaterial);
+  scene.add(stars);
+
+  sun = new THREE.Mesh(new THREE.SphereGeometry(1, 48, 48),
+    new THREE.MeshBasicMaterial({ color: 0xffcc33 }));
+  scene.add(sun);
+
+  glow = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: makeGlowTexture(), transparent:true, depthWrite:false, blending:THREE.AdditiveBlending
+  }));
+  scene.add(glow);
+
+  sunLabelDiv = document.createElement('div');
+  sunLabelDiv.className = 'planet-label sun-label';
+  sunLabelDiv.textContent = 'Sun';
+  sunLabel = new CSS2DObject(sunLabelDiv);
+  sun.add(sunLabel);
+}
+
+// ================================================================
+// 5. СБОРКА
+// ================================================================
+function buildOrbitLine(r) {
+  const pts = [];
+  for (let i = 0; i <= 256; i++) {
+    const a = (i/256) * Math.PI * 2;
+    pts.push(new THREE.Vector3(Math.cos(a)*r, 0, -Math.sin(a)*r));
+  }
+  return new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),
+    new THREE.LineBasicMaterial({ color:0x334455, transparent:true, opacity:0.6 }));
+}
+
+function buildRingMesh(innerKm, outerKm, tiltDeg) {
+  const geo = new THREE.RingGeometry(visualRadius(innerKm), visualRadius(outerKm), 128, 1);
+  geo.rotateX(-Math.PI/2);
+  const mesh = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({
+    color:0xd9c9a3, side:THREE.DoubleSide, transparent:true, opacity:0.55
+  }));
+  mesh.rotation.z = THREE.MathUtils.degToRad(tiltDeg);
+  return mesh;
+}
+
+function rebuildScene() {
+  for (const m of planetMeshes) {
+    scene.remove(m.group);
+    if (m.label) m.label.element.remove();
+  }
+  for (const l of orbitLines) scene.remove(l);
+  for (const r of ringMeshes) scene.remove(r);
+  planetMeshes = []; orbitLines = []; ringMeshes = []; allLabels = [];
+
+  const sunR = visualRadius(SUN_RADIUS);
+  sun.scale.setScalar(sunR);
+  glow.scale.setScalar(sunR * 6);
+  allLabels.push(sunLabel);
+
+  for (const p of DATA.planets) {
+    const distV = visualDistance(p.aAu * AU);
+    const sizeV = visualRadius(p.radiusKm);
+
+    const orbit = buildOrbitLine(distV);
+    scene.add(orbit); orbitLines.push(orbit);
+
+    // Создаем группу для всей планеты (она будет двигаться по орбите)
+    const planetGroup = new THREE.Group();
+    scene.add(planetGroup);
+
+    // Внутри группы создаем еще одну группу для наклона оси
+    const tiltGroup = new THREE.Group();
+    tiltGroup.rotation.z = THREE.MathUtils.degToRad(p.axisTiltDeg);
+    planetGroup.add(tiltGroup);
+
+    // Меш планеты
+    const tex = makeSpottedTexture(p.color);
+    const mesh = new THREE.Mesh(
+      new THREE.SphereGeometry(sizeV, 32, 32),
+      new THREE.MeshStandardMaterial({
+        map: tex, color: 0xffffff, roughness: 0.9,
+        emissive: new THREE.Color(p.color).multiplyScalar(0.18)
+      })
+    );
+    mesh.userData.planetKey = p.key;
+    tiltGroup.add(mesh);
+
+    // Хитбокс
+    const hitbox = new THREE.Mesh(
+      new THREE.SphereGeometry(sizeV * 3, 16, 16),
+      new THREE.MeshBasicMaterial({ visible: false })
+    );
+    hitbox.userData.planetKey = p.key;
+    planetGroup.add(hitbox);
+
+    // Кольца
+    if (p.ring) {
+      const ring = buildRingMesh(p.ring.innerKm, p.ring.outerKm, p.ring.tiltDeg);
+      tiltGroup.add(ring); ringMeshes.push(ring);
+    }
+
+    const labelDiv = document.createElement('div');
+    labelDiv.className = 'planet-label';
+    labelDiv.textContent = planetName(p.key);
+    const label = new CSS2DObject(labelDiv);
+    label.position.set(0, sizeV * 1.8, 0);
+    planetGroup.add(label);
+    allLabels.push(label);
+
+    planetMeshes.push({
+      group: planetGroup,
+      mesh: mesh,
+      hitbox: hitbox,
+      label: label,
+      key: p.key, distV,
+      angle: Math.random() * Math.PI * 2,
+      speed: 0.6 / Math.sqrt(p.aAu)
+    });
+  }
+  applyNamesVisibility();
+}
+
+// ================================================================
+// 6. АСТЕРОИДЫ
+// ================================================================
+function buildAsteroids() {
+  if (asteroidMesh) { scene.remove(asteroidMesh); asteroidMesh = null; }
+  const N = 4000;
+  const mesh = new THREE.InstancedMesh(
+    new THREE.IcosahedronGeometry(0.12, 0),
+    new THREE.MeshStandardMaterial({ color: 0x8a7f6a, roughness: 1 }),
+    N
+  );
+  mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+  const dummy = new THREE.Object3D();
+  const innerA = 2.1 * AU, outerA = 3.3 * AU;
+  for (let i = 0; i < N; i++) {
+    const aKm = innerA + Math.random() * (outerA - innerA);
+    const distV = visualDistance(aKm);
+    const ang = Math.random() * Math.PI * 2;
+    dummy.position.set(Math.cos(ang) * distV, (Math.random() - 0.5) * 1.6, -Math.sin(ang) * distV);
+    dummy.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI);
+    dummy.scale.setScalar(0.4 + Math.random() * 1.2);
+    dummy.updateMatrix();
+    mesh.setMatrixAt(i, dummy.matrix);
+  }
+  mesh.instanceMatrix.needsUpdate = true;
+  scene.add(mesh);
+  asteroidMesh = mesh;
+}
+
+// ================================================================
+// 7. ЯЗЫК / ИМЕНА И ОРБИТЫ
+// ================================================================
+function applyLanguage() {
+  document.getElementById('ui-title').textContent = t('title');
+  document.getElementById('lbl-pr').textContent = t('pr');
+  document.getElementById('lbl-ps').textContent = t('ps');
+  document.getElementById('lbl-kr').textContent = t('kr');
+  document.getElementById('lbl-names').textContent = t('names');
+  document.getElementById('lbl-lang').textContent = t('lang');
+  document.getElementById('modal-preview-label').textContent = t('previewLabel');
+
+  document.getElementById('btn-en').classList.toggle('active', currentLang === 'en');
+  document.getElementById('btn-rus').classList.toggle('active', currentLang === 'rus');
+
+  for (const p of planetMeshes) {
+    if (p.label && p.label.element) p.label.element.textContent = planetName(p.key);
+  }
+  if (sunLabelDiv) sunLabelDiv.textContent = t('sun');
+
+  if (document.getElementById('modal-overlay').classList.contains('open')) {
+    renderInfoTable(currentPlanetKey);
+  }
+}
+
+// ИЗМЕНЕНО: Теперь функция скрывает/показывает и лейблы, и линии орбит
+function applyNamesVisibility() {
+  // Скрываем/показываем лейблы
+  for (const l of allLabels) {
+    l.visible = state.showNames;
+    if (l.element) l.element.style.display = state.showNames ? '' : 'none';
+  }
+  
+  // Скрываем/показываем линии орбит
+  for (const orbitLine of orbitLines) {
+    orbitLine.visible = state.showNames;
+  }
+}
+
+// ================================================================
+// 8. МОДАЛКА + ПРЕВЬЮ
+// ================================================================
+let currentPlanetKey = null;
+const overlay = document.getElementById('modal-overlay');
+const modalTitle = document.getElementById('modal-title');
+const modalInfo = document.getElementById('modal-info');
+const previewCanvas = document.getElementById('preview-canvas');
+
+let previewRenderer=null, previewScene=null, previewCamera=null;
+let previewTiltGroup=null, previewSpinGroup=null;
+let previewAxis=null, previewRafId=null;
+
+function initPreview() {
+  if (previewRenderer) return;
+  
+  previewRenderer = new THREE.WebGLRenderer({ canvas: previewCanvas, antialias: true, alpha: true });
+  previewRenderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+
+  previewScene = new THREE.Scene();
+  previewCamera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
+
+  previewScene.add(new THREE.AmbientLight(0xffffff, 0.6));
+  const dir = new THREE.DirectionalLight(0xffffff, 2);
+  dir.position.set(4, 5, 6);
+  previewScene.add(dir);
+  const back = new THREE.DirectionalLight(0x445566, 0.8);
+  back.position.set(-3, -2, -4);
+  previewScene.add(back);
+}
+
+function buildAxisLine(planetRadius) {
+  const len = planetRadius * 2.2;
+  const geo = new THREE.BufferGeometry().setFromPoints([
+    new THREE.Vector3(0, -len, 0),
+    new THREE.Vector3(0,  len, 0)
+  ]);
+  return new THREE.Line(geo, new THREE.LineBasicMaterial({ color: 0x66aaff, transparent:true, opacity:0.9 }));
+}
+
+function openModal(planetKey) {
+  currentPlanetKey = planetKey;
+  const p = DATA.planets.find(x => x.key === planetKey);
+  if (!p) return;
+
+  initPreview();
+  modalTitle.textContent = planetName(planetKey);
+  renderInfoTable(planetKey);
+
+  if (previewTiltGroup) previewScene.remove(previewTiltGroup);
+  previewTiltGroup = null; previewSpinGroup = null; previewAxis = null;
+
+  const tiltGroup = new THREE.Group();
+  const tiltRad = THREE.MathUtils.degToRad(p.axisTiltDeg);
+  tiltGroup.rotation.z = tiltRad;
+
+  const spinGroup = new THREE.Group();
+  tiltGroup.add(spinGroup);
+
+  const tex = makeSpottedTexture(p.color);
+  const planetMesh = new THREE.Mesh(
+    new THREE.SphereGeometry(1, 48, 48),
+    new THREE.MeshStandardMaterial({ map: tex, roughness: 0.85 })
+  );
+  spinGroup.add(planetMesh);
+
+  // === ДОБАВЛЯЕМ КОЛЬЦА В ПРЕВЬЮ ===
+  if (p.ring) {
+    const innerRelative = p.ring.innerKm / p.radiusKm;
+    const outerRelative = p.ring.outerKm / p.radiusKm;
+    const ringGeo = new THREE.RingGeometry(innerRelative, outerRelative, 128, 1);
+    ringGeo.rotateX(-Math.PI / 2);
+    const ringMat = new THREE.MeshBasicMaterial({
+      map: makeRingTexture(),
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.8,
+      depthWrite: false
+    });
+    const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+    tiltGroup.add(ringMesh);
+  }
+
+  previewAxis = buildAxisLine(1);
+  tiltGroup.add(previewAxis);
+
+  previewScene.add(tiltGroup);
+  previewTiltGroup = tiltGroup;
+  previewSpinGroup = spinGroup;
+
+  previewCamera.position.set(0, 1.6, 5);
+  previewCamera.lookAt(0, 0, 0);
+
+  const parentRect = previewCanvas.parentElement.getBoundingClientRect();
+  const w = parentRect.width || 400;
+  const h = parentRect.height || 400;
+  previewRenderer.setSize(w, h, false);
+  previewCamera.aspect = w / h;
+  previewCamera.updateProjectionMatrix();
+
+  overlay.classList.add('open');
+
+  if (previewRafId) cancelAnimationFrame(previewRafId);
+  const spinSign = p.rotationDir === 'prograde' ? 1 : -1;
+  const spinSpeed = 0.6 * spinSign;
+  
+  function previewLoop() {
+    previewSpinGroup.rotation.y += spinSpeed * 0.016;
+    previewRenderer.render(previewScene, previewCamera);
+    previewRafId = requestAnimationFrame(previewLoop);
+  }
+  previewLoop();
+}
+
+function closeModal() {
+  overlay.classList.remove('open');
+  if (previewRafId) { cancelAnimationFrame(previewRafId); previewRafId = null; }
+}
+
+function formatNumber(n, digits = 2) {
+  return Number(n).toLocaleString(currentLang === 'en' ? 'en-US' : 'ru-RU', {
+    maximumFractionDigits: digits, minimumFractionDigits: 0
+  });
+}
+
+function renderInfoTable(planetKey) {
+  const p = DATA.planets.find(x => x.key === planetKey);
+  if (!p) return;
+
+  const periodText = p.orbitalPeriodDays > 1000
+    ? `${formatNumber(p.orbitalPeriodDays / 365.25, 2)} ${t('years')}`
+    : `${formatNumber(p.orbitalPeriodDays, 2)} ${t('days')}`;
+
+  const rotText = p.rotationPeriodHours >= 48
+    ? `${formatNumber(p.rotationPeriodHours / 24, 2)} ${t('days')}`
+    : `${formatNumber(p.rotationPeriodHours, 2)} ${t('hours')}`;
+
+  const dirText = p.rotationDir === 'prograde' ? t('prograde') : t('retrograde');
+
+  const rows = [
+    [t('distance'), `${formatNumber(p.aAu, 3)} ${t('au')}`],
+    [t('orbitalPeriod'), periodText],
+    [t('orbitalSpeed'), `${formatNumber(p.orbitalSpeedKmS, 2)} ${t('kmS')}`],
+    [t('mass'), `${formatNumber(p.massEarth, 3)} ${t('earthMasses')}`],
+    [t('diameter'), `${formatNumber(p.diameterKm, 0)} ${t('km')}`],
+    [t('gravity'), `${formatNumber(p.gravityMs2, 1)} ${t('ms2')}`],
+    [t('axisTilt'), `${formatNumber(p.axisTiltDeg, 2)}°`],
+    [t('rotationDir'), dirText],
+    [t('rotationPeriod'), rotText],
+  ];
+
+  let html = `<h3>${t('tableTitle')}</h3>`;
+  html += rows.map(([k, v]) => `<div class="info-row"><span class="k">${k}</span><span class="v">${v}</span></div>`).join('');
+
+  html += `<div class="moons-block">
+    <div class="k">${t('moonsCount')}</div>
+    <div class="v">${p.moonsCount}</div>`;
+  if (p.moonsCount > 0 && p.moons && p.moons.length) {
+    const names = p.moons.join(', ');
+    const shown = p.moonsCount > p.moons.length
+      ? names + ` … (+${p.moonsCount - p.moons.length} ${t('more')})`
+      : names;
+    html += `<details><summary>${t('moonsList')}</summary><div class="v">${shown}</div></details>`;
+  }
+  html += `</div>`;
+
+  if (currentLang === 'en') {
+    html += `<div class="orbit-info">
+      <strong>1. Orbital motion (around the Sun):</strong><br>
+      • Direction: All planets (including Earth) orbit the Sun <strong>counterclockwise</strong> (viewed from North).<br>
+      • Why: Inherited from the rotation of the protoplanetary disk.<br><br>
+      <strong>2. Axial rotation (day and night):</strong><br>
+      • Direction: Most planets rotate <strong>counterclockwise</strong> (West to East, viewed from North), like Earth, Mars, and Jupiter.<br>
+      • <em>Exceptions:</em><br>
+      &nbsp;&nbsp;- <strong>Venus</strong> rotates <strong>clockwise</strong> (East to West) — the Sun rises in the West there.<br>
+      &nbsp;&nbsp;- <strong>Uranus</strong> is tilted almost 90°, so it rotates on its side.
+    </div>`;
+  } else {
+    html += `<div class="orbit-info">
+      <strong>1. Движение по орбите (вокруг Солнца):</strong><br>
+      • Куда: Все планеты (включая Землю) движутся вокруг Солнца <strong>против часовой стрелки</strong> (если смотреть с Севера).<br>
+      • Почему: Это наследие вращения протопланетного диска.<br><br>
+      <strong>2. Вращение вокруг своей оси (день и ночь):</strong><br>
+      • Куда: Большинство планет вращаются <strong>против часовой стрелки</strong> (с запада на восток, если смотреть с Северного полюса). Так вращаются Земля, Марс и Юпитер.<br>
+      • <em>Исключения:</em><br>
+      &nbsp;&nbsp;- <strong>Венера</strong> вращается <strong>по часовой стрелке</strong> (с востока на запад) — Солнце там встает на западе.<br>
+      &nbsp;&nbsp;- <strong>Уран</strong> лежит на боку (наклон ~98°), поэтому его вращение выглядит необычно.
+    </div>`;
+  }
+
+  modalInfo.innerHTML = html;
+}
+
+// ================================================================
+// 9. RAYCASTER
+// ================================================================
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+
+function onCanvasClick(e) {
+  if (e.target.closest('#ui') || e.target.closest('#modal')) return;
+  mouse.x = (e.clientX / innerWidth) * 2 - 1;
+  mouse.y = -(e.clientY / innerHeight) * 2 + 1;
+  raycaster.setFromCamera(mouse, camera);
+
+  const hitboxes = planetMeshes.map(p => p.hitbox);
+  const hits = raycaster.intersectObjects(hitboxes, false);
+  if (hits.length > 0) {
+    const key = hits[0].object.userData.planetKey;
+    if (key) openModal(key);
+  }
+}
+
+// ================================================================
+// 10. UI
+// ================================================================
+function bindUI() {
+  document.getElementById('btn-en').addEventListener('click', () => { currentLang='en'; applyLanguage(); });
+  document.getElementById('btn-rus').addEventListener('click', () => { currentLang='rus'; applyLanguage(); });
+
+  document.getElementById('showNames').addEventListener('change', e => {
+    state.showNames = e.target.checked;
+    applyNamesVisibility();
+  });
+
+  document.getElementById('modal-close').addEventListener('click', closeModal);
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+
+  function bindSlider(id, key, outId) {
+    const input = document.getElementById(id);
+    const out = document.getElementById(outId);
+    input.addEventListener('input', () => {
+      state[key] = parseFloat(input.value);
+      out.textContent = state[key].toFixed(2);
+      rebuildScene(); buildAsteroids();
+    });
+  }
+  bindSlider('pr', 'pr', 'prv');
+  bindSlider('ps', 'ps', 'psv');
+  bindSlider('kr', 'kr', 'krv');
+
+  renderer.domElement.addEventListener('click', onCanvasClick);
+
+  addEventListener('resize', () => {
+    camera.aspect = innerWidth / innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
+    labelRenderer.setSize(innerWidth, innerHeight);
+  });
+}
+
+// ================================================================
+// 11. АНИМАЦИЯ
+// ================================================================
+const clock = new THREE.Clock();
+function animate() {
+  const dt = clock.getDelta();
+  const tEl = clock.getElapsedTime();
+
+  for (const p of planetMeshes) {
+    p.angle += p.speed * dt * 0.15;
+    // Двигаем всю группу по орбите
+    p.group.position.set(Math.cos(p.angle) * p.distV, 0, -Math.sin(p.angle) * p.distV);
+    
+    // Вращаем только сам меш планеты
+    p.mesh.rotation.y += dt * 0.4;
+  }
+  
+  glow.material.opacity = 0.85 + 0.15 * Math.sin(tEl * 2);
+
+  if (stars) {
+    stars.rotation.y += dt * 0.005;
+  }
+
+  controls.update();
+  renderer.render(scene, camera);
+  labelRenderer.render(scene, camera);
+  requestAnimationFrame(animate);
+}
+
+// ================================================================
+// 12. СТАРТ
+// ================================================================
+(async function main() {
+  await loadData();
+  AU = DATA.auKm; SUN_RADIUS = DATA.sunRadiusKm;
+  D_REF = AU; R_REF = SUN_RADIUS;
+
+  initThree();
+  rebuildScene();
+  buildAsteroids();
+  bindUI();
+  applyLanguage();
+  applyNamesVisibility();
+  animate();
+})();
+</script>
+</body>
+</html>

@@ -2,6 +2,79 @@ import type { Article } from '../types';
 
 export const articles: Article[] = [
   {
+      slug: 'visualizing-science-facts',
+      kind: 'note',
+      date: new Date('2026-11-15'),
+      tag: { ru: 'Заметка', en: 'Note' },
+      title: {
+        ru: 'Визуализируем научные факты',
+        en: 'Visualizing Science Facts',
+      },
+      lead: {
+        ru: 'Число из справочника забывается, а модель, которую можно покрутить, остаётся в памяти. Открываю серию «Визуализируем научные факты», где сухие числа становятся интерактивными сценами. Первый выпуск — из астрономии.',
+        en: 'A number from a reference book fades; a model you can spin around stays. This opens the "Visualizing Science Facts" series, where dry numbers become interactive scenes. The first issue comes from astronomy.',
+      },
+      sections: [
+        {
+          heading: { ru: 'Астрономия', en: 'Astronomy' },
+          centered: true,
+          paragraphs: {
+            ru: [
+              'За несколько «промтов» показать ребёнку, как Луна вращается вокруг Земли и Солнца, или планеты в Солнечной системе. Интерактивные модели написаны на HTML + JS: их можно приближать и вращать.',
+            ],
+            en: [
+              'In a few prompts, show a child how the Moon orbits the Earth and the Sun — or the planets in the Solar System. The interactive models are plain HTML + JS: zoom and rotate them freely.',
+            ],
+          },
+          object: [
+            {
+              src: 'astronomy/simple/solar.svg',
+              height: 324,
+              title: {
+                ru: 'Солнечная система в сжатом масштабе',
+                en: 'The Solar System on a compressed scale',
+              },
+              link: {
+                text: { ru: 'Открыть интерактивную модель →', en: 'Open the interactive model →' },
+                url: {
+                  ru: 'astronomy/simple/index.html',
+                  en: 'astronomy/simple/index.html',
+                },
+              },
+            },
+            {
+              src: 'astronomy/simple/earth.svg',
+              height: 324,
+              title: {
+                ru: 'Земля и Солнце в одном масштабе',
+                en: 'The Earth and the Sun to the same scale',
+              },
+              link: {
+                text: {
+                  ru: 'Открыть демо «Земля — Луна — Солнце» →',
+                  en: 'Open the Earth — Moon — Sun demo →',
+                },
+                url: {
+                  ru: 'astronomy/simple/solar_moon_earth.html',
+                  en: 'astronomy/simple/solar_moon_earth.html',
+                },
+              },
+            },
+          ],
+        },
+        {
+          object: {
+            src: 'astronomy/simple/space_scale.svg',
+            height: 560,
+            title: {
+              ru: 'Единицы расстояний: астрономическая единица, световой год, парсек',
+              en: 'Distance units: astronomical unit, light-year, parsec',
+            },
+          },
+        },
+      ],
+    },
+  {
       slug: '.NET learning roadmap',
       kind: 'note',
       date: new Date('2026-11-05'),

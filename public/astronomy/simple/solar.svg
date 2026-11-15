@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 600" width="100%" height="100%" style="background: #050510; font-family: sans-serif;">
+  <defs>
+    <!-- Свечение Солнца -->
+    <radialGradient id="sunGlow">
+      <stop offset="0%" stop-color="#ffcc33" stop-opacity="1" />
+      <stop offset="30%" stop-color="#ffcc33" stop-opacity="0.6" />
+      <stop offset="100%" stop-color="#ffcc33" stop-opacity="0" />
+    </radialGradient>
+    
+    <!-- Текстура астероида -->
+    <circle id="asteroid" r="1" fill="#8a7f6a" opacity="0.6" />
+  </defs>
+
+  <!-- Наклон всей сцены (имитация 3D перспективы) -->
+  <!-- scale(1, 0.35) сжимает круг в эллипс, создавая вид "сверху под углом" -->
+  <g transform="translate(500, 300) scale(1, 0.35)">
+    
+    <!-- 1. ОРБИТЫ -->
+    <g fill="none" stroke="#2a3b4c" stroke-width="1.5">
+      <circle r="40" />   <!-- Меркурий -->
+      <circle r="55" />   <!-- Венера -->
+      <circle r="65" />   <!-- Земля -->
+      <circle r="80" />   <!-- Марс -->
+      <circle r="150" />  <!-- Юпитер -->
+      <circle r="210" />  <!-- Сатурн -->
+      <circle r="290" />  <!-- Уран -->
+      <circle r="380" />  <!-- Нептун -->
+    </g>
+
+    <!-- 2. ПОЯС АСТЕРОИДОВ -->
+    <g>
+      <use href="#asteroid" transform="rotate(10) translate(100, 0)" />
+      <use href="#asteroid" transform="rotate(35) translate(115, 0)" />
+      <use href="#asteroid" transform="rotate(60) translate(90, 0)" />
+      <use href="#asteroid" transform="rotate(85) translate(135, 0)" />
+      <use href="#asteroid" transform="rotate(110) translate(125, 0)" />
+      <use href="#asteroid" transform="rotate(135) translate(105, 0)" />
+      <use href="#asteroid" transform="rotate(160) translate(140, 0)" />
+      <use href="#asteroid" transform="rotate(185) translate(95, 0)" />
+      <use href="#asteroid" transform="rotate(210) translate(110, 0)" />
+      <use href="#asteroid" transform="rotate(235) translate(130, 0)" />
+      <use href="#asteroid" transform="rotate(260) translate(85, 0)" />
+      <use href="#asteroid" transform="rotate(285) translate(120, 0)" />
+      <use href="#asteroid" transform="rotate(310) translate(100, 0)" />
+      <use href="#asteroid" transform="rotate(335) translate(145, 0)" />
+    </g>
+
+    <!-- 3. ПЛАНЕТЫ -->
+    <!-- Вращение от 0 до 360 дает движение ПРОТИВ часовой стрелки -->
+    
+    <!-- Меркурий -->
+    <g>
+      <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="4s" repeatCount="indefinite" />
+      <circle cx="40" cy="0" r="2.5" fill="#9c9c9c" />
+    </g>
+
+    <!-- Венера -->
+    <g>
+      <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="8s" repeatCount="indefinite" />
+      <circle cx="55" cy="0" r="3.5" fill="#e6c07a" />
+    </g>
+
+    <!-- Земля -->
+    <g>
+      <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="12s" repeatCount="indefinite" />
+      <circle cx="65" cy="0" r="3.5" fill="#3d7fd6" />
+    </g>
+
+    <!-- Марс -->
+    <g>
+      <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="20s" repeatCount="indefinite" />
+      <circle cx="80" cy="0" r="3" fill="#c1440e" />
+    </g>
+
+    <!-- Юпитер -->
+    <g>
+      <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="40s" repeatCount="indefinite" />
+      <circle cx="150" cy="0" r="10" fill="#d8ca9d" />
+    </g>
+
+    <!-- Сатурн (с кольцами) -->
+    <g>
+      <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="60s" repeatCount="indefinite" />
+      <g transform="translate(210, 0)">
+        <!-- Кольцо Сатурна (эллипс). Так как сцена уже сжата, эллипс выглядит натурально -->
+        <ellipse cx="0" cy="0" rx="18" ry="6" fill="none" stroke="#e3d6a7" stroke-width="2" transform="rotate(-20)" opacity="0.8" />
+        <!-- Сама планета -->
+        <circle cx="0" cy="0" r="8" fill="#e3d6a7" />
+      </g>
+    </g>
+
+    <!-- Уран -->
+    <g>
+      <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="100s" repeatCount="indefinite" />
+      <circle cx="290" cy="0" r="6" fill="#9fe3e3" />
+    </g>
+
+    <!-- Нептун -->
+    <g>
+      <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="150s" repeatCount="indefinite" />
+      <circle cx="380" cy="0" r="6" fill="#3f54ba" />
+    </g>
+
+    <!-- 4. СОЛНЦЕ (рисуем в самом конце, чтобы оно было поверх орбит) -->
+    <circle cx="0" cy="0" r="20" fill="#ffcc33" />
+    <circle cx="0" cy="0" r="30" fill="url(#sunGlow)" />
+
+  </g>
+</svg>

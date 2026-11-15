@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Earth-Moon-Sun (Final)</title>
+<style>
+  body { margin: 0; overflow: hidden; background: #000; font-family: system-ui, sans-serif; }
+  #ui {
+    position: fixed; bottom: 20px; left: 20px; color: #8899aa; font-size: 12px;
+    background: rgba(0,0,0,0.6); padding: 12px; border-radius: 8px; backdrop-filter: blur(4px);
+    border: 1px solid #223344; z-index: 100;
+  }
+  .label { color: #fff; font-size: 12px; font-weight: bold; text-shadow: 0 0 4px #000; pointer-events: none; }
+  button {
+    margin-top: 10px; background: #223344; color: #66aaff; border: 1px solid #66aaff;
+    padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold;
+    transition: all 0.2s;
+  }
+  button:hover { background: #334455; }
+  button.active { background: #66aaff; color: #000; }
+</style>
+</head>
+<body>
+<div id="ui">
+  <strong>Система Земля-Луна-Солнце</strong><br>
+  • Физически точный свет<br>
+  • Времена года<br>
+  <span style="color:#66aaff">Синяя линия</span> — ось Земли<br>
+  
+  <button id="toggle-camera">Приблизиться к Земле</button>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+
+// ================================================================
+// 1. ГЕНЕРАЦИЯ ТЕКСТУРЫ ЛУНЫ
+// ================================================================
+function createMoonTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512; canvas.height = 256;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#cccccc'; ctx.fillRect(0, 0, 512, 256);
+  ctx.fillStyle = '#888888';
+  ctx.beginPath(); ctx.arc(150, 100, 40, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(350, 80, 50, 0, Math.PI*2); ctx.fill();
+  for (let i = 0; i < 200; i++) {
+    const x = Math.random() * 512, y = Math.random() * 256, r = Math.random() * 8 + 1;
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.2)'; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.3)'; ctx.beginPath(); ctx.arc(x - r*0.2, y - r*0.2, r*0.8, 0, Math.PI*2); ctx.fill();
+  }
+  return new THREE.CanvasTexture(canvas);
+}
+
+// ================================================================
+// 2. ГЕНЕРАЦИЯ ТЕКСТА ДЛЯ СПРАЙТОВ (Времена года)
+// ================================================================
+function createTextSprite(text, color) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256; canvas.height = 64;
+  const ctx = canvas.getContext('2d');
+  ctx.font = 'bold 36px system-ui, sans-serif';
+  ctx.fillStyle = color;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, 128, 32);
+  
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  
+  const material = new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: false });
+  const sprite = new THREE.Sprite(material);
+  sprite.scale.set(80, 20, 1); // Размер надписи
+  return sprite;
+}
+
+// ================================================================
+// 3. СЦЕНА И КАМЕРА
+// ================================================================
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, 0.1, 20000);
+camera.position.set(0, 200, 500); 
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true; 
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.2; 
+document.body.appendChild(renderer.domElement);
+
+const labelRenderer = new CSS2DRenderer();
+labelRenderer.setSize(innerWidth, innerHeight);
+labelRenderer.domElement.style.position = 'absolute';
+labelRenderer.domElement.style.top = '0px';
+labelRenderer.domElement.style.pointerEvents = 'none';
+document.body.appendChild(labelRenderer.domElement);
+
+// ================================================================
+// 4. УПРАВЛЕНИЕ
+// ================================================================
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.05;
+controls.enablePan = false;      
+controls.enableZoom = true;      
+controls.minPolarAngle = THREE.MathUtils.degToRad(90 - 15);
+controls.maxPolarAngle = THREE.MathUtils.degToRad(90 + 15);
+
+// ================================================================
+// 5. МАСШТАБЫ
+// ================================================================
+const earthRadius = 4;           
+const moonRadius = earthRadius * 0.272; 
+const sunRadius = earthRadius * 3.5;   
+const moonOrbitRadius = earthRadius * 15; 
+const sunDistance = 600; 
+
+// ================================================================
+// 6. СОЛНЦЕ И СВЕТ
+// ================================================================
+const sunGeo = new THREE.SphereGeometry(sunRadius, 64, 64);
+const sunMat = new THREE.MeshBasicMaterial({ color: 0xffdd44 });
+const sunMesh = new THREE.Mesh(sunGeo, sunMat);
+sunMesh.position.set(sunDistance, 0, 0);
+scene.add(sunMesh);
+
+const sunLight = new THREE.DirectionalLight(0xffffff, 2.5); 
+sunLight.target.position.set(0, 0, 0); 
+scene.add(sunLight.target);
+
+sunLight.castShadow = true;
+sunLight.shadow.mapSize.width = 2048;
+sunLight.shadow.mapSize.height = 2048;
+sunLight.shadow.camera.near = 0.5;
+sunLight.shadow.camera.far = 2000;
+sunLight.shadow.camera.left = -100;
+sunLight.shadow.camera.right = 100;
+sunLight.shadow.camera.top = 100;
+sunLight.shadow.camera.bottom = -100;
+scene.add(sunLight);
+
+scene.add(new THREE.HemisphereLight(0x445566, 0x112233, 1.5)); 
+scene.add(new THREE.AmbientLight(0x334455, 1.5));
+
+// ================================================================
+// 7. ЗАГРУЗКА ТЕКСТУР
+// ================================================================
+const textureLoader = new THREE.TextureLoader();
+const earthMap = textureLoader.load('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg');
+earthMap.colorSpace = THREE.SRGBColorSpace;
+earthMap.anisotropy = 16;
+const moonMap = createMoonTexture();
+
+// ================================================================
+// 8. ЗЕМЛЯ И ЛУНА
+// ================================================================
+const earthSystemGroup = new THREE.Group();
+scene.add(earthSystemGroup);
+
+const tiltGroup = new THREE.Group();
+tiltGroup.rotation.z = THREE.MathUtils.degToRad(23.5);
+earthSystemGroup.add(tiltGroup);
+
+const spinGroup = new THREE.Group();
+tiltGroup.add(spinGroup);
+
+const earthGeo = new THREE.SphereGeometry(earthRadius, 64, 64);
+const earthMat = new THREE.MeshStandardMaterial({ 
+  map: earthMap, roughness: 0.8, metalness: 0.0
+});
+const earth = new THREE.Mesh(earthGeo, earthMat);
+earth.castShadow = true;
+earth.receiveShadow = true;
+spinGroup.add(earth);
+
+const atmosGeo = new THREE.SphereGeometry(earthRadius * 1.02, 64, 64);
+const atmosMat = new THREE.MeshBasicMaterial({ 
+  color: 0x66aaff, transparent: true, opacity: 0.08, 
+  blending: THREE.AdditiveBlending, side: THREE.BackSide 
+});
+const atmosphere = new THREE.Mesh(atmosGeo, atmosMat);
+spinGroup.add(atmosphere);
+
+const axisGeo = new THREE.CylinderGeometry(0.03, 0.03, earthRadius * 3.5);
+const axisMat = new THREE.MeshBasicMaterial({ color: 0x66aaff });
+const earthAxis = new THREE.Mesh(axisGeo, axisMat);
+tiltGroup.add(earthAxis);
+
+const moonOrbitGroup = new THREE.Group();
+moonOrbitGroup.rotation.x = THREE.MathUtils.degToRad(5.14); 
+tiltGroup.add(moonOrbitGroup);
+
+const moonGeo = new THREE.SphereGeometry(moonRadius, 32, 32);
+const moonMat = new THREE.MeshStandardMaterial({ 
+  map: moonMap, roughness: 0.9, metalness: 0.1,
+  emissive: new THREE.Color(0x222222)
+});
+const moon = new THREE.Mesh(moonGeo, moonMat);
+moon.position.set(moonOrbitRadius, 0, 0);
+moon.castShadow = true;
+moon.receiveShadow = true;
+moonOrbitGroup.add(moon);
+
+// ================================================================
+// 9. ОРБИТА ЗЕМЛИ И ПОДПИСИ (Времена года)
+// ================================================================
+const orbitRadius = sunDistance; 
+const points = [];
+const segments = 128; 
+for (let i = 0; i <= segments; i++) {
+  const angle = (i / segments) * Math.PI * 2;
+  points.push(new THREE.Vector3(
+    sunDistance + sunDistance * Math.cos(angle), 0, sunDistance * Math.sin(angle)
+  ));
+}
+const orbitGeometry = new THREE.BufferGeometry().setFromPoints(points);
+const orbitMaterial = new THREE.LineDashedMaterial({
+  color: 0x66aaff, dashSize: 10, gapSize: 6, transparent: true, opacity: 0.6
+});
+const earthOrbitLine = new THREE.Line(orbitGeometry, orbitMaterial);
+earthOrbitLine.computeLineDistances();
+scene.add(earthOrbitLine);
+
+// Добавляем текстовые спрайты на орбиту (0, 90, 180, 270 градусов)
+// 0° (справа) - Лето, 90° (снизу) - Осень, 180° (слева) - Зима, 270° (сверху) - Весна
+const seasons = [
+  { angle: 0, text: "Лето", color: "#66ff99" },
+  { angle: 90, text: "Осень", color: "#ffaa00" },
+  { angle: 180, text: "Зима", color: "#66aaff" },
+  { angle: 270, text: "Весна", color: "#ff66aa" }
+];
+
+seasons.forEach(s => {
+  const rad = THREE.MathUtils.degToRad(s.angle);
+  // Позиция на орбите + небольшое смещение, чтобы текст не перекрывал линию
+  const x = sunDistance + sunDistance * Math.cos(rad);
+  const z = sunDistance * Math.sin(rad);
+  
+  const sprite = createTextSprite(s.text, s.color);
+  sprite.position.set(x, 20, z); // Приподнимаем над орбитой
+  scene.add(sprite);
+});
+
+// ================================================================
+// 10. ФОНОВЫЕ ЗВЕЗДЫ
+// ================================================================
+const starsGeometry = new THREE.BufferGeometry();
+const starsCount = 4000;
+const starsPositions = new Float32Array(starsCount * 3);
+
+for (let i = 0; i < starsCount * 3; i += 3) {
+  const r = 2000 + Math.random() * 3000;
+  const theta = Math.random() * Math.PI * 2;
+  const phi = Math.acos((Math.random() * 2) - 1);
+  
+  starsPositions[i] = r * Math.sin(phi) * Math.cos(theta);
+  starsPositions[i + 1] = r * Math.sin(phi) * Math.sin(theta);
+  starsPositions[i + 2] = r * Math.cos(phi);
+}
+
+starsGeometry.setAttribute('position', new THREE.BufferAttribute(starsPositions, 3));
+
+const starsMaterial = new THREE.PointsMaterial({
+  color: 0xffffff, size: 2.5, sizeAttenuation: true, transparent: true, opacity: 0.8
+});
+
+const stars = new THREE.Points(starsGeometry, starsMaterial);
+scene.add(stars);
+
+// ================================================================
+// 11. ЛОГИКА КАМЕРЫ
+// ================================================================
+let isFollowMode = false;
+const toggleBtn = document.getElementById('toggle-camera');
+
+toggleBtn.addEventListener('click', () => {
+  isFollowMode = !isFollowMode;
+  
+  if (isFollowMode) {
+    toggleBtn.textContent = 'Свободный обзор';
+    toggleBtn.classList.add('active');
+    camera.position.set(earthSystemGroup.position.x, earthSystemGroup.position.y + 15, earthSystemGroup.position.z + 40);
+    controls.minDistance = 10;
+    controls.maxDistance = 60;
+  } else {
+    toggleBtn.textContent = 'Приблизиться к Земле';
+    toggleBtn.classList.remove('active');
+    camera.position.set(earthSystemGroup.position.x, earthSystemGroup.position.y + 200, earthSystemGroup.position.z + 500);
+    controls.minDistance = 50;
+    controls.maxDistance = 800;
+  }
+});
+
+// ================================================================
+// 12. АНИМАЦИЯ
+// ================================================================
+const clock = new THREE.Clock();
+
+function animate() {
+  const dt = clock.getDelta();
+  const time = clock.getElapsedTime();
+
+  spinGroup.rotation.y += dt * 0.5;
+  
+  moon.position.x = Math.cos(time * 0.5) * moonOrbitRadius;
+  moon.position.z = Math.sin(time * 0.5) * moonOrbitRadius;
+  moon.rotation.y = -time * 0.5; 
+
+  moonOrbitGroup.rotation.y += 0.05 * dt;
+
+  const orbitSpeed = 0.02;
+  const angle = time * orbitSpeed;
+  const R = sunDistance; 
+  earthSystemGroup.position.x = R - R * Math.cos(angle);
+  earthSystemGroup.position.z = R * Math.sin(angle);
+
+  sunLight.position.set(sunDistance, 0, 0);
+  sunLight.target.position.copy(earthSystemGroup.position);
+  sunLight.target.updateMatrixWorld();
+
+  const offset = new THREE.Vector3().subVectors(camera.position, controls.target);
+  controls.target.copy(earthSystemGroup.position);
+  camera.position.copy(earthSystemGroup.position).add(offset);
+
+  stars.rotation.y += dt * 0.001;
+
+  controls.update();
+  renderer.render(scene, camera);
+  labelRenderer.render(scene, camera);
+  requestAnimationFrame(animate);
+}
+animate();
+
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+  labelRenderer.setSize(innerWidth, innerHeight);
+});
+</script>
+</body>
+</html>

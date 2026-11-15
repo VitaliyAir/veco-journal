@@ -13,6 +13,7 @@ https://vitaliyair.github.io/veco-journal/
 | `src/i18n/translations.ts` | UI texts in RU and EN |
 | `src/components/` | UI components |
 | `src/styles/global.css` | Styles |
+| `public/astronomy/simple/` | Astronomy demos (SVG schemes + HTML/JS interactive models), embedded in the "Visualizing Science Facts" note |
 | `.github/workflows/deploy.yml` | Build + deploy to GitHub Pages on push to `main` |
 
 ## One-time setup
@@ -23,7 +24,7 @@ https://vitaliyair.github.io/veco-journal/
 ## Everyday flow: from code change to live site
 
 1. `git pull` — get the latest code.
-2. `npm run dev` — open http://localhost:5173/veco-journal/ (auto-reloads on save).
+2. `npm run dev` — open http://localhost:5179/veco-journal/ (auto-reloads on save).
 3. Make the change (data files, translations, components, styles).
 4. `npm run build` then `npm run preview` — check the production build at http://localhost:4173/veco-journal/.
    `build` also type-checks; a type error stops it (and stops the deploy).

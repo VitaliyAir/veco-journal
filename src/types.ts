@@ -60,6 +60,16 @@ export interface Milestone {
   desc: Localized;
 }
 
+/** Static SVG illustration rendered with `<object type="image/svg+xml">`. */
+export interface ArticleEmbed {
+  /** Relative to the site root (`base`). */
+  src: string;
+  title: Localized;
+  height?: number;
+  /** Optional button shown right under this illustration. */
+  link?: { text: Localized; url: Localized };
+}
+
 export interface ArticleSection {
   heading?: Localized;
   paragraphs?: Localized<string[]>;
@@ -70,6 +80,18 @@ export interface ArticleSection {
   link?: { text: Localized; url: Localized };
   /** Illustration placed inside the article. */
   image?: { src: string; caption: Localized };
+  /**
+   * Illustration(s) shown in the section. An array renders them side by side,
+   * the first one wider.
+   */
+  object?: ArticleEmbed | ArticleEmbed[];
+  /**
+   * Two-column layout: the `object` illustration on the left,
+   * the heading and the rest of the section on the right.
+   */
+  split?: boolean;
+  /** Center the heading (short uppercase title above a full-width diagram). */
+  centered?: boolean;
 }
 
 export interface Article {

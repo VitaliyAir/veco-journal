@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 550" width="100%" height="100%" style="background: #0a0e17; font-family: system-ui, sans-serif;">
+  <defs>
+    <!-- Свечение Солнца -->
+    <radialGradient id="sunGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffcc33" stop-opacity="1" />
+      <stop offset="100%" stop-color="#ffcc33" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+
+  <!-- ======================= -->
+  <!-- ВЕРХНЯЯ ЧАСТЬ: СОЛНЕЧНАЯ СИСТЕМА -->
+  <!-- ======================= -->
+  <g transform="translate(0, 40)">
+    <text x="500" y="0" fill="#e8eefc" font-size="18" font-weight="bold" text-anchor="middle">Солнечная система (в масштабе)</text>
+    
+
+    <!-- Центр (Солнце и планеты) -->
+    <g transform="translate(500, 100)">
+      <!-- Солнце -->
+      <circle cx="0" cy="0" r="30" fill="url(#sunGlow)" />
+      <circle cx="0" cy="0" r="6" fill="#ffcc33" />
+      
+      <!-- Внутренние планеты (очень плотно) -->
+      <circle cx="15" cy="0" r="1.5" fill="#9c9c9c" /> <!-- Меркурий -->
+      <circle cx="25" cy="0" r="2" fill="#e6c07a" /> <!-- Венера -->
+      <circle cx="35" cy="0" r="2" fill="#3d7fd6" /> <!-- Земля -->
+      <circle cx="50" cy="0" r="2" fill="#c1440e" /> <!-- Марс -->
+      
+      <!-- Внешние планеты -->
+      <circle cx="130" cy="0" r="6" fill="#d8ca9d" /> <!-- Юпитер -->
+      <circle cx="200" cy="0" r="5" fill="#e3d6a7" /> <!-- Сатурн -->
+      <circle cx="300" cy="0" r="4" fill="#9fe3e3" /> <!-- Уран -->
+      <circle cx="400" cy="0" r="4" fill="#3f54ba" /> <!-- Нептун -->
+    </g>
+    
+    <!-- Линейка (строго по центру) -->
+    <line x1="100" y1="160" x2="900" y2="160" stroke="#445566" stroke-width="2" />
+    <line x1="100" y1="155" x2="100" y2="165" stroke="#445566" stroke-width="2" />
+    <line x1="900" y1="155" x2="900" y2="165" stroke="#445566" stroke-width="2" />
+    <text x="500" y="180" fill="#8899aa" font-size="13" text-anchor="middle">30,07 а.е.</text>
+  </g>
+
+
+  <!-- ======================= -->
+  <!-- НИЖНЯЯ ЧАСТЬ: ОПИСАНИЯ В СТРОКУ (3 КОЛОНКИ) -->
+  <!-- ======================= -->
+  <g transform="translate(0, 280)" fill="#ccd" font-size="13">
+    <!-- Вертикальные разделители -->
+    <line x1="333" y1="0" x2="333" y2="220" stroke="#1e2433" stroke-width="1" />
+    <line x1="666" y1="0" x2="666" y2="220" stroke="#1e2433" stroke-width="1" />
+
+    <!-- 1 КОЛОНКА: А.Е. -->
+    <g transform="translate(50, 0)">
+      <text x="0" y="0" fill="#ffcc33" font-weight="bold" font-size="16">Астрономическая единица (а.е.)</text>
+      <text x="0" y="25" fill="#8899aa" font-size="13">149 597 870,7 км</text>
+      <text x="0" y="50">Среднее расстояние от Земли до Солнца.</text>
+      <text x="0" y="70">Свет проходит его за 8 мин 19 с.</text>
+      <text x="0" y="100" fill="#8899aa">В а.е. измеряют расстояния</text>
+      <text x="0" y="120" fill="#8899aa">внутри Солнечной системы:</text>
+      <text x="0" y="140">Нептун — 30,07 а.е.</text>
+    </g>
+
+    <!-- 2 КОЛОНКА: СВЕТОВОЙ ГОД -->
+    <g transform="translate(383, 0)">
+      <text x="0" y="0" fill="#66ff99" font-weight="bold" font-size="16">Световой год (св. г.)</text>
+      <text x="0" y="25" fill="#8899aa" font-size="13">9 460 730 472 580,8 км</text>
+      <text x="0" y="50">Путь света за 1 земной год.</text>
+      <text x="0" y="70">= 63 241,077 а.е.</text>
+      <text x="0" y="100" fill="#8899aa">Ближайшая звезда,</text>
+      <text x="0" y="120" fill="#8899aa">Проксима Центавра, —</text>
+      <text x="0" y="140">4,24 св. года.</text>
+    </g>
+
+    <!-- 3 КОЛОНКА: ПАРСЕК -->
+    <g transform="translate(716, 0)">
+      <text x="0" y="0" fill="#66aaff" font-weight="bold" font-size="16">Парсек (пк)</text>
+      <text x="0" y="25" fill="#8899aa" font-size="13">30 856 775 814 913,7 км</text>
+      <text x="0" y="50">= 206 264,8 а.е. = 3,2616 св. г.</text>
+      <text x="0" y="70" fill="#8899aa">Определяется геометрией:</text>
+      <text x="0" y="90">1 а.е. видна под углом</text>
+      <text x="0" y="110">в одну угловую секунду.</text>
+      <text x="0" y="140" fill="#8899aa">В парсеках измеряют</text>
+      <text x="0" y="160" fill="#8899aa">расстояния до звёзд и галактик.</text>
+    </g>
+  </g>
+
+</svg>

@@ -371,6 +371,79 @@ body {
   border: 1px solid var(--border); border-radius: 10px; background: var(--surface);
 }
 .article-figure figcaption { margin-top: 8px; font-size: .85rem; color: var(--fg-muted); line-height: 1.6; }
+.article-frame { margin: 8px 0 24px; }
+.article-frame .article-embed {
+  display: block; width: 100%; height: 600px;
+  border: 1px solid var(--border); border-radius: 12px; background: #050510;
+}
+.article-frame figcaption { margin-top: 8px; font-size: .85rem; color: var(--fg-muted); line-height: 1.6; }
+@media (max-width: 720px) {
+  .article-frame .article-embed { height: 420px; }
+}
+
+/* Illustration on the left, text column on the right. */
+.article-split {
+  display: grid;
+  grid-template-columns: minmax(200px, 360px) minmax(0, 1fr);
+  gap: 28px;
+  align-items: center;
+}
+.article-split .article-frame { margin: 0; }
+.article-split .article-embed { height: 300px; }
+.article-split-body > :first-child { margin-top: 0; }
+.article-split-body .article-ext-link { margin-top: 0; background: #1f9d55; }
+.article-split-body .article-ext-link:hover { background: #17824a; opacity: 1; }
+@media (max-width: 1000px) {
+  .article-split { grid-template-columns: 1fr; gap: 18px; }
+  .article-split .article-embed { height: 300px; }
+}
+
+/* One illustration, optionally with a call-to-action button right under it. */
+.article-embed-block { display: flex; flex-direction: column; align-items: stretch; }
+.article-embed-block--cta { max-width: 620px; }
+.article-embed-block--cta .article-frame { margin-bottom: 0; }
+.article-embed-block .article-ext-link {
+  align-self: flex-start; margin-top: 14px;
+  background: #1f9d55;
+}
+.article-embed-block .article-ext-link:hover { background: #17824a; opacity: 1; }
+
+/* Two illustrations side by side with a green call-to-action under each.
+   Cells stretch to equal height, so both buttons line up at the bottom. */
+.article-pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 22px;
+  align-items: stretch;
+  margin: 8px 0 24px;
+}
+.article-pair-cell { display: flex; flex-direction: column; height: 100%; }
+.article-pair .article-frame { margin: 0; }
+.article-pair .article-embed { height: 324px; }
+.article-pair-cell .article-embed-block { height: 100%; }
+.article-pair-cell .article-ext-link {
+  align-self: flex-start; margin-top: auto; padding-top: 14px;
+  background: #1f9d55;
+}
+.article-pair-cell .article-ext-link:hover { background: #17824a; opacity: 1; }
+@media (max-width: 1000px) {
+  .article-pair { grid-template-columns: 1fr; }
+  .article-pair .article-embed { height: 240px; }
+}
+
+/* Short uppercase title centered above a full-width diagram. */
+.article-section--centered h3 {
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: .14em;
+  font-size: 1.05rem;
+  margin: 0 0 1em;
+}
+.article-section--centered > p {
+  text-align: center;
+  margin: 0 0 1em;
+  line-height: 1.75;
+}
 .article-def { margin-bottom: 16px; }
 .article-def dt {
   font-weight: 600; color: var(--fg); margin-bottom: 3px;

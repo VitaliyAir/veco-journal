@@ -9,7 +9,7 @@
  * Run: node tools/build-roadmaps.mjs   (hooked into `npm run build`)
  */
 
-import { readFileSync, writeFileSync, readdirSync, statSync } from 'node:fs';
+import { readFileSync, writeFileSync, readdirSync, statSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 
 const DIR = 'public/roadmaps';
@@ -527,6 +527,10 @@ if (!files.length) {
   console.log('[roadmaps] no markdown sources in ' + DIR);
 }
 
+const CSS_OUT = join('public', 'css', 'dotnet-roadmap.css');
+const CSS_LINK = '<link rel="stylesheet" href="../css/dotnet-roadmap.css">';
+let cssWritten = false;
+
 for (const file of files) {
   const lang = file.match(/\.(ru|en)\.md$/)?.[1];
   if (!lang) {
@@ -540,6 +544,21 @@ for (const file of files) {
   }
   const doc = parse(readFileSync(src, 'utf8'));
   const out = src.replace(/\.md$/, '.html');
-  writeFileSync(out, render(doc, lang), 'utf8');
+
+  // Styles live inline in the template; extract them once into a shared stylesheet.
+  const html = render(doc, lang);
+  const style = html.match(/<style>([\s\S]*?)<\/style>/);
+  let page = html;
+  if (style) {
+    if (!cssWritten) {
+      mkdirSync(join('public', 'css'), { recursive: true });
+      writeFileSync(CSS_OUT, `${style[1].trim()}\n`, 'utf8');
+      cssWritten = true;
+      console.log(`[roadmaps] styles -> ${CSS_OUT}`);
+    }
+    page = html.replace(/<style>[\s\S]*?<\/style>/, CSS_LINK);
+  }
+
+  writeFileSync(out, page, 'utf8');
   console.log(`[roadmaps] ${file} -> ${out}`);
 }
