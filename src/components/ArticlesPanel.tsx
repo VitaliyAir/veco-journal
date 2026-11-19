@@ -89,7 +89,7 @@ function ArticleReader({ article, onBack }: { article: Article; onBack: () => vo
         {formatDate(article.date, lang)}
       </div>
       <h1 className="article-title">{article.title[lang]}</h1>
-      <p className="article-lead">{article.lead[lang]}</p>
+      {article.lead[lang] && <p className="article-lead">{article.lead[lang]}</p>}
       {article.sections.map((s, i) => {
         const embeds = asEmbeds(s.object);
         const body = (
@@ -221,9 +221,11 @@ export default function ArticlesPanel() {
               {a.title[lang]}
             </h3>
             <div className="news-card">
-              <p style={{ margin: 0, color: 'var(--fg-muted)', lineHeight: 1.6 }}>
-                {a.lead[lang].split('\n')[0]}
-              </p>
+              {a.lead[lang] && (
+                <p style={{ margin: 0, color: 'var(--fg-muted)', lineHeight: 1.6 }}>
+                  {a.lead[lang].split('\n')[0]}
+                </p>
+              )}
               <button className="article-read-btn" onClick={() => setOpen(a)}>
                 {a.kind === 'note'
                   ? (lang === 'ru' ? 'Читать заметку' : 'Read note')

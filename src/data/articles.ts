@@ -10,22 +10,10 @@ export const articles: Article[] = [
       ru: 'Несколько простых детских игрушек в дорогу',
       en: 'A few simple games for kids on the road',
     },
-    lead: {
-      ru: 'Три маленькие игры, собранные за полчаса с ИИ-ассистентом: крестики-нолики, захват территории и артиллерийская дуэль замков. Без фреймворков и сборки — чистые HTML, CSS и canvas, играются прямо в браузере.',
-      en: 'Three small games built in half an hour with an AI assistant: tic-tac-toe, a territory grab and an artillery duel of castles. No frameworks, no build step — plain HTML, CSS and canvas, playable right in the browser.',
-    },
+    // Текста нет намеренно: заметка — это заголовок и три плитки с играми.
+    lead: { ru: '', en: '' },
     sections: [
       {
-        paragraphs: {
-          ru: [
-            'Полчаса — это не про продакшн, а про проверку идеи: если правило объясняется одним предложением, игру можно дать поиграть уже сегодня. Каждая — один HTML-файл плюс CSS, без зависимостей: открыл и играешь.',
-            'Кликайте по плитке — игра откроется в новой вкладке.',
-          ],
-          en: [
-            'Half an hour is not about production quality, it is about testing an idea: if the rule fits in one sentence, the game can be playable today. Each one is a single HTML file plus CSS, no dependencies: open it and play.',
-            'Click a tile to open the game in a new tab.',
-          ],
-        },
         tiles: [
           {
             href: 'games/ZeroX.html',
@@ -46,19 +34,6 @@ export const articles: Article[] = [
             caption: { ru: 'Артиллерия: угол, сила, ветер', en: 'Artillery: angle, power, wind' },
           },
         ],
-      },
-      {
-        heading: { ru: 'Что внутри', en: 'What is inside' },
-        paragraphs: {
-          ru: [
-            'Ни npm, ни бэкенда, ни сборки: счёт и настройки живут в памяти вкладки, поэтому после перезагрузки игра начинается заново. Поле и анимации — canvas, интерфейс — обычный CSS.',
-            'Такие игрушки хорошо проверяют гипотезу «а зайдёт ли»: за вечер их можно сделать десяток и оставить только те, в которые действительно хочется играть.',
-          ],
-          en: [
-            'No npm, no backend, no build: the score and settings live in the tab memory, so a reload starts a fresh game. The board and animations are canvas, the interface is plain CSS.',
-            'Games like these are a cheap way to test "will anyone play this": a dozen can be built in an evening, and only the ones worth playing stay.',
-          ],
-        },
       },
     ],
   },
