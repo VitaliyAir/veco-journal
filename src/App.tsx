@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Header from './components/Header';
 import TabNav from './components/TabNav';
 import Sidebar from './components/Sidebar';
@@ -10,6 +10,7 @@ import Milestones from './components/Milestones';
 import { portfolio } from './data/portfolio';
 import { articles } from './data/articles';
 import type { SidebarLink, TabId } from './types';
+import { trackVisit } from './visitCounter';
 
 const TABS: TabId[] = ['home', 'articles', 'portfolio', 'about'];
 
@@ -18,6 +19,11 @@ const portfolioLinks: SidebarLink[] = portfolio.map(p => ({ name: p.name, url: p
 export default function App() {
   const [tab, setTab] = useState<TabId>(() =>
     articles.some(a => `#${a.slug}` === window.location.hash) ? 'articles' : 'home');
+
+  // Счётчик посещений: один запрос за загрузку страницы (внутри защищено от повторов).
+  useEffect(() => {
+    trackVisit();
+  }, []);
 
   const changeTab = (t: TabId) => {
     if (t !== 'articles' && window.location.hash)
