@@ -7,8 +7,8 @@ export const articles: Article[] = [
     date: new Date('2026-11-20'),
     tag: { ru: 'Заметка', en: 'Note' },
     title: {
-      ru: 'Vibecoding for fun. Несколько простых игрушек за 30 минут',
-      en: 'Vibecoding for fun. A few simple games in 30 minutes',
+      ru: 'Несколько простых детских игрушек в дорогу',
+      en: 'A few simple games for kids on the road',
     },
     lead: {
       ru: 'Три маленькие игры, собранные за полчаса с ИИ-ассистентом: крестики-нолики, захват территории и артиллерийская дуэль замков. Без фреймворков и сборки — чистые HTML, CSS и canvas, играются прямо в браузере.',
