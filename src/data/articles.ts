@@ -10,8 +10,11 @@ export const articles: Article[] = [
       ru: 'Несколько простых детских игрушек в дорогу',
       en: 'A few simple games for kids on the road',
     },
-    // Текста нет намеренно: заметка — это заголовок и три плитки с играми.
-    lead: { ru: '', en: '' },
+    // Тизер для карточки в списке (и одна строка под заголовком). Тела заметки нет — только плитки.
+    lead: {
+      ru: 'Небольшая серия самописных игрушек с помощью LLM',
+      en: 'A small series of hand-made games built with an LLM',
+    },
     sections: [
       {
         tiles: [
