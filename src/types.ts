@@ -81,6 +81,11 @@ export interface ArticleSection {
   /** Illustration placed inside the article. */
   image?: { src: string; caption: Localized };
   /**
+   * Clickable square tiles: the screenshot fills the tile, the title is overlaid at the bottom,
+   * the whole tile opens `href` (a playable demo).
+   */
+  tiles?: ArticleTile[];
+  /**
    * Illustration(s) shown in the section. An array renders them side by side,
    * the first one wider.
    */
@@ -102,4 +107,15 @@ export interface Article {
   title: Localized;
   lead: Localized;
   sections: ArticleSection[];
+}
+
+/** Square clickable tile in an article: a screenshot plus the name, opens the demo. */
+export interface ArticleTile {
+  /** Relative to the site root (`base`), e.g. 'games/ZeroX.html'. */
+  href: string;
+  /** Screenshot, relative to the site root (`base`). */
+  src: string;
+  title: Localized;
+  /** One line under the title — the genre or how to play. */
+  caption?: Localized;
 }

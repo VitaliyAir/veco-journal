@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>крестики-нолики · звериная серия</title>
+  <link rel="stylesheet" href="ZeroX.css">
+</head>
+<body>
+<div class="game-container">
+  <!-- Шапка -->
+  <div class="game-header">
+    <h1><span>🐾</span> звериные нолики</h1>
+    <div class="turn-indicator" id="turnIndicator">
+      <span class="mark" id="turnAvatar">🦊</span>
+      <span id="turnText">ход игрока 1</span>
+    </div>
+  </div>
+
+  <!-- Игроки + счёт -->
+  <div class="players-row">
+    <div class="player-card p1" id="player1Card">
+      <span class="first-move-badge">⭐ первый</span>
+      <span class="player-label">Игрок 1</span>
+      <span class="player-avatar" id="p1Avatar">🦊</span>
+      <button class="player-name-btn" data-player="1">сменить</button>
+    </div>
+
+    <div class="scoreboard">
+      <div class="score-main" id="scoreMain">0 : 0</div>
+      <div class="score-sub" id="scoreSub">ничьи 0 · игра 1</div>
+    </div>
+
+    <div class="player-card p2" id="player2Card">
+      <span class="first-move-badge">⭐ первый</span>
+      <span class="player-label">Игрок 2</span>
+      <span class="player-avatar" id="p2Avatar">🐼</span>
+      <button class="player-name-btn" data-player="2">сменить</button>
+    </div>
+  </div>
+
+  <!-- Инфо о первом ходе -->
+  <div class="first-move-info" id="firstMoveInfo">
+    ⭐ В этой игре первым ходит <strong id="firstMoverName">Игрок 1 (🦊)</strong>
+  </div>
+
+  <!-- Доска + оверлей окончания игры -->
+  <div class="board-wrap">
+    <div class="board" id="board"></div>
+
+    <div class="game-over-overlay" id="gameOverOverlay">
+      <div class="game-over-badge" id="gameOverBadge">🏆</div>
+      <div class="game-over-title" id="gameOverTitle">Игрок 1 побеждает!</div>
+      <div class="game-over-score" id="gameOverScore">0 : 0 · ничьи 0</div>
+      <div class="game-over-actions">
+        <button class="btn" id="overlayNextButton"><span>↻</span> новая игра</button>
+        <button class="btn btn-ghost" id="overlayResetSeriesButton"><span>🗑</span> сбросить серию</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Футер (скрывается, когда показан оверлей) -->
+  <div class="game-footer" id="gameFooter">
+    <button class="btn" id="resetButton"><span>↻</span> новая игра</button>
+    <button class="btn btn-ghost" id="resetSeriesButton"><span>🗑</span> сбросить серию</button>
+  </div>
+</div>
+
+<!-- Модалка выбора зверька -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h2 id="modalTitle">Выбери зверька</h2>
+    <p id="modalSubtitle">Игрок 1, кто ты?</p>
+    <div class="animal-grid" id="animalGrid"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="modalCancel">отмена</button>
+    </div>
+  </div>
+</div>
+
+<!-- Тост серии -->
+<div class="series-toast" id="seriesToast"></div>
+
+<script>
+(function() {
+  'use strict';
+
+  // ============================================================
+  //  КОНСТАНТЫ
+  // ============================================================
+  const ANIMALS = ['🦊', '🐼', '🐸', '🦁', '🐨', '🐯', '🐰', '🐻', '🐮', '🐷', '🐵', '🦉'];
+  const STORAGE_KEY = 'tictactoe_animals_v3';
+
+  const WIN_PATTERNS = [
+    [0,1,2], [3,4,5], [6,7,8],
+    [0,3,6], [1,4,7], [2,5,8],
+    [0,4,8], [2,4,6]
+  ];
+
+  // ============================================================
+  //  СОСТОЯНИЕ
+  // ============================================================
+  let board = Array(9).fill(null);
+  let currentPlayer = 1;
+  let gameActive = true;
+  let winner = null;
+  let winCombo = null;
+
+  let score = { p1: 0, p2: 0, ties: 0 };
+  let seriesRound = 1;
+  let firstMover = 1;
+
+  let player1Animal = '🦊';
+  let player2Animal = '🐼';
+
+  let modalTargetPlayer = null;
+
+  // ============================================================
+  //  DOM
+  // ============================================================
+  const boardEl = document.getElementById('board');
+  const turnAvatar = document.getElementById('turnAvatar');
+  const turnText = document.getElementById('turnText');
+
+  const p1Card = document.getElementById('player1Card');
+  const p2Card = document.getElementById('player2Card');
+  const p1AvatarEl = document.getElementById('p1Avatar');
+  const p2AvatarEl = document.getElementById('p2Avatar');
+
+  const scoreMain = document.getElementById('scoreMain');
+  const scoreSub = document.getElementById('scoreSub');
+
+  const firstMoverName = document.getElementById('firstMoverName');
+
+  const resetButton = document.getElementById('resetButton');
+  const resetSeriesButton = document.getElementById('resetSeriesButton');
+  const gameFooter = document.getElementById('gameFooter');
+
+  const gameOverOverlay = document.getElementById('gameOverOverlay');
+  const gameOverBadge = document.getElementById('gameOverBadge');
+  const gameOverTitle = document.getElementById('gameOverTitle');
+  const gameOverScore = document.getElementById('gameOverScore');
+  const overlayNextButton = document.getElementById('overlayNextButton');
+  const overlayResetSeriesButton = document.getElementById('overlayResetSeriesButton');
+
+  const modalOverlay = document.getElementById('modalOverlay');
+  const modalTitle = document.getElementById('modalTitle');
+  const modalSubtitle = document.getElementById('modalSubtitle');
+  const animalGrid = document.getElementById('animalGrid');
+  const modalCancel = document.getElementById('modalCancel');
+
+  const seriesToast = document.getElementById('seriesToast');
+
+  // ============================================================
+  //  LOCALSTORAGE
+  // ============================================================
+  function saveState() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        player1Animal,
+        player2Animal,
+        score,
+        seriesRound,
+        firstMover
+      }));
+    } catch (e) { /* silent */ }
+  }
+
+  function loadState() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      const data = JSON.parse(raw);
+      if (data.player1Animal && ANIMALS.includes(data.player1Animal)) player1Animal = data.player1Animal;
+      if (data.player2Animal && ANIMALS.includes(data.player2Animal)) player2Animal = data.player2Animal;
+      if (data.score && typeof data.score.p1 === 'number') {
+        score = {
+          p1: data.score.p1 || 0,
+          p2: data.score.p2 || 0,
+          ties: data.score.ties || 0
+        };
+      }
+      if (typeof data.seriesRound === 'number' && data.seriesRound >= 1) {
+        seriesRound = data.seriesRound;
+      }
+      if (data.firstMover === 1 || data.firstMover === 2) {
+        firstMover = data.firstMover;
+      } else {
+        firstMover = (seriesRound % 2 === 1) ? 1 : 2;
+      }
+    } catch (e) { /* silent */ }
+  }
+
+  // ============================================================
+  //  ОТРИСОВКА
+  // ============================================================
+  function createBoardCells() {
+    boardEl.innerHTML = '';
+    for (let i = 0; i < 9; i++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.dataset.index = i;
+      cell.addEventListener('click', () => handleCellClick(i));
+      boardEl.appendChild(cell);
+    }
+  }
+
+  function updateUI() {
+    const cells = boardEl.children;
+    for (let i = 0; i < 9; i++) {
+      const cell = cells[i];
+      const value = board[i];
+      cell.classList.remove('occupied', 'win-highlight');
+      cell.innerHTML = '';
+
+      if (value === 1) {
+        cell.classList.add('occupied');
+        cell.innerHTML = `<span class="avatar">${player1Animal}</span>`;
+      } else if (value === 2) {
+        cell.classList.add('occupied');
+        cell.innerHTML = `<span class="avatar">${player2Animal}</span>`;
+      }
+
+      if (winCombo && winCombo.includes(i)) {
+        cell.classList.add('win-highlight');
+      }
+    }
+
+    p1AvatarEl.textContent = player1Animal;
+    p2AvatarEl.textContent = player2Animal;
+
+    p1Card.classList.remove('active', 'first-mover');
+    p2Card.classList.remove('active', 'first-mover');
+
+    if (firstMover === 1) p1Card.classList.add('first-mover');
+    else p2Card.classList.add('first-mover');
+
+    if (gameActive) {
+      if (currentPlayer === 1) p1Card.classList.add('active');
+      else p2Card.classList.add('active');
+    } else if (winner === 1) {
+      p1Card.classList.add('active');
+    } else if (winner === 2) {
+      p2Card.classList.add('active');
+    }
+
+    if (!gameActive) {
+      if (winner === 1) {
+        turnAvatar.textContent = player1Animal;
+        turnText.textContent = `победил игрок 1`;
+      } else if (winner === 2) {
+        turnAvatar.textContent = player2Animal;
+        turnText.textContent = `победил игрок 2`;
+      } else if (winner === 'tie') {
+        turnAvatar.textContent = '🤝';
+        turnText.textContent = 'ничья';
+      }
+    } else {
+      turnAvatar.textContent = currentPlayer === 1 ? player1Animal : player2Animal;
+      turnText.textContent = `ход игрока ${currentPlayer}`;
+    }
+
+    scoreMain.textContent = `${score.p1} : ${score.p2}`;
+    scoreSub.textContent = `ничьи ${score.ties} · игра ${seriesRound}`;
+
+    const firstAnimal = firstMover === 1 ? player1Animal : player2Animal;
+    firstMoverName.textContent = `Игрок ${firstMover} (${firstAnimal})`;
+
+    updateGameOverOverlay();
+  }
+
+  function updateGameOverOverlay() {
+    if (gameActive) {
+      gameOverOverlay.classList.remove('visible');
+      boardEl.classList.remove('blurred');
+      gameFooter.classList.remove('hidden');
+      return;
+    }
+
+    gameOverOverlay.classList.add('visible');
+    boardEl.classList.add('blurred');
+    gameFooter.classList.add('hidden');
+
+    if (winner === 1) {
+      gameOverBadge.textContent = player1Animal;
+      gameOverTitle.textContent = `Игрок 1 побеждает!`;
+    } else if (winner === 2) {
+      gameOverBadge.textContent = player2Animal;
+      gameOverTitle.textContent = `Игрок 2 побеждает!`;
+    } else {
+      gameOverBadge.textContent = '🤝';
+      gameOverTitle.textContent = 'Ничья!';
+    }
+
+    gameOverScore.textContent = `${score.p1} : ${score.p2} · ничьи ${score.ties}`;
+  }
+
+  // ============================================================
+  //  ИГРОВАЯ ЛОГИКА
+  // ============================================================
+  function checkWinner() {
+    for (const pattern of WIN_PATTERNS) {
+      const [a, b, c] = pattern;
+      if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+        return { winner: board[a], combo: pattern };
+      }
+    }
+    if (board.every(cell => cell !== null)) {
+      return { winner: 'tie', combo: null };
+    }
+    return { winner: null, combo: null };
+  }
+
+  function handleCellClick(index) {
+    if (!gameActive || board[index] !== null) return;
+
+    board[index] = currentPlayer;
+
+    const result = checkWinner();
+    if (result.winner) {
+      gameActive = false;
+      winner = result.winner;
+      winCombo = result.combo;
+
+      if (winner === 1) score.p1 += 1;
+      else if (winner === 2) score.p2 += 1;
+      else if (winner === 'tie') score.ties += 1;
+
+      saveState();
+      showSeriesToast(winner);
+    } else {
+      currentPlayer = currentPlayer === 1 ? 2 : 1;
+    }
+
+    updateUI();
+  }
+
+  function nextGame() {
+    firstMover = firstMover === 1 ? 2 : 1;
+    currentPlayer = firstMover;
+
+    board = Array(9).fill(null);
+    gameActive = true;
+    winner = null;
+    winCombo = null;
+
+    seriesRound += 1;
+
+    saveState();
+    updateUI();
+  }
+
+  function resetSeries() {
+    score = { p1: 0, p2: 0, ties: 0 };
+    seriesRound = 1;
+    firstMover = 1;
+    currentPlayer = 1;
+
+    board = Array(9).fill(null);
+    gameActive = true;
+    winner = null;
+    winCombo = null;
+
+    saveState();
+    updateUI();
+    showSeriesToast('reset');
+  }
+
+  // ============================================================
+  //  ТОСТ
+  // ============================================================
+  let toastTimer = null;
+  function showSeriesToast(type) {
+    let msg = '';
+    if (type === 1) msg = `🏆 Игрок 1 (${player1Animal}) побеждает!`;
+    else if (type === 2) msg = `🏆 Игрок 2 (${player2Animal}) побеждает!`;
+    else if (type === 'tie') msg = '🤝 Ничья!';
+    else if (type === 'reset') msg = 'Серия сброшена. Новая игра!';
+    else return;
+
+    seriesToast.textContent = msg;
+    seriesToast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      seriesToast.classList.remove('show');
+    }, 2400);
+  }
+
+  // ============================================================
+  //  МОДАЛКА
+  // ============================================================
+  function openAnimalModal(playerNum) {
+    modalTargetPlayer = playerNum;
+    modalTitle.textContent = `Игрок ${playerNum}, выбери зверька`;
+    modalSubtitle.textContent = 'Твой выбор сохранится в браузере.';
+
+    animalGrid.innerHTML = '';
+    const currentChoice = playerNum === 1 ? player1Animal : player2Animal;
+    const otherChoice = playerNum === 1 ? player2Animal : player1Animal;
+
+    ANIMALS.forEach(animal => {
+      const el = document.createElement('div');
+      el.className = 'animal-option';
+      el.textContent = animal;
+      el.dataset.animal = animal;
+
+      if (animal === currentChoice) el.classList.add('selected');
+      if (animal === otherChoice) el.classList.add('disabled');
+
+      el.addEventListener('click', () => selectAnimal(animal, playerNum));
+      animalGrid.appendChild(el);
+    });
+
+    modalOverlay.classList.add('open');
+  }
+
+  function closeAnimalModal() {
+    modalOverlay.classList.remove('open');
+    modalTargetPlayer = null;
+  }
+
+  function selectAnimal(animal, playerNum) {
+    if (animal === (playerNum === 1 ? player2Animal : player1Animal)) return;
+
+    if (playerNum === 1) player1Animal = animal;
+    else player2Animal = animal;
+
+    saveState();
+    updateUI();
+    closeAnimalModal();
+  }
+
+  // ============================================================
+  //  ИНИЦИАЛИЗАЦИЯ
+  // ============================================================
+  function init() {
+    loadState();
+    currentPlayer = firstMover;
+
+    createBoardCells();
+    updateUI();
+
+    // Общие действия для кнопок "новая игра"
+    const handleNextGame = () => {
+      if (gameActive) {
+        board = Array(9).fill(null);
+        currentPlayer = firstMover;
+        winner = null;
+        winCombo = null;
+        updateUI();
+      } else {
+        nextGame();
+      }
+    };
+
+    resetButton.addEventListener('click', handleNextGame);
+    overlayNextButton.addEventListener('click', handleNextGame);
+
+    // Кнопки сброса серии
+    resetSeriesButton.addEventListener('click', resetSeries);
+    overlayResetSeriesButton.addEventListener('click', resetSeries);
+
+    // Выбор зверьков
+    document.querySelectorAll('.player-name-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const num = parseInt(btn.dataset.player, 10);
+        openAnimalModal(num);
+      });
+    });
+
+    modalCancel.addEventListener('click', closeAnimalModal);
+    modalOverlay.addEventListener('click', (e) => {
+      if (e.target === modalOverlay) closeAnimalModal();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modalOverlay.classList.contains('open')) {
+        closeAnimalModal();
+      }
+    });
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>

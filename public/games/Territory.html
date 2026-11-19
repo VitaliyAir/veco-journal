@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Захват Территории · Звериная серия</title>
+<link rel="stylesheet" href="Territory.css">
+<style>
+  /* Настройки показываются оверлеем поверх поля, CSS-файл не трогаем */
+  .setup-panel{
+    position:absolute; inset:0; z-index:20;
+    justify-content:center;
+    padding:1.5rem;
+    background:rgba(255,252,255,.93);
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
+    border-radius:1.5rem;
+  }
+  .setup-panel.hidden{display:none;}
+  .btn-icon{padding:.45rem .95rem;font-size:.9rem;}
+  .canvas-wrap{min-height:420px;}
+  #setup-hint{color:#a0889e;font-size:.85rem;min-height:1.2em;text-align:center;}
+  @media(max-width:520px){
+    .setup-panel{padding:1rem;}
+    .setup-options{flex-wrap:wrap;justify-content:center;}
+  }
+</style>
+</head>
+<body>
+<div class="game-container">
+  <div class="game-header">
+    <h1>🗺️ Захват Территории</h1>
+    <div style="display:flex;gap:.5rem;align-items:center;">
+      <div class="turn-indicator" id="turn-indicator">🦊 Ход Игрока 1</div>
+      <button class="btn btn-icon" id="btn-settings">⚙ Настройки</button>
+    </div>
+  </div>
+
+  <div class="canvas-wrap">
+    <canvas id="board"></canvas>
+
+    <div class="setup-panel" id="setup-panel">
+      <h2>Настройка игры</h2>
+      <div class="setup-options">
+        <label for="board-size">Размер поля:</label>
+        <select id="board-size">
+          <option value="10">10 × 10</option>
+          <option value="15" selected>15 × 15</option>
+          <option value="20">20 × 20</option>
+          <option value="24">24 × 24</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:.8rem;flex-wrap:wrap;justify-content:center;">
+        <button class="btn fire-btn" id="btn-new">🎮 Новая игра</button>
+        <button class="btn" id="btn-continue">⏯ Продолжить</button>
+        <button class="btn" id="btn-close" style="display:none;">✖ Закрыть</button>
+      </div>
+      <p id="setup-hint"></p>
+    </div>
+
+    <div class="game-over-overlay" id="game-over">
+      <div class="game-over-badge" id="go-badge">🏆</div>
+      <div class="game-over-title" id="go-title">Игрок 1 побеждает!</div>
+      <div class="game-over-score" id="go-score"></div>
+      <button class="btn fire-btn" id="btn-again" style="margin-top:1rem;">↻ Играть снова</button>
+    </div>
+  </div>
+
+  <div class="players-row">
+    <div class="player-card p1" id="card1">
+      <div class="first-move-badge">⭐ первый</div>
+      <div class="player-label">Игрок 1</div>
+      <div class="player-avatar" id="av1">🦊</div>
+      <button class="player-name-btn" data-p="0">сменить</button>
+      <div class="score-text" id="score-text1">Захвачено: 0</div>
+    </div>
+    <div class="scoreboard">
+      <div class="score-main" id="score-main">0 : 0</div>
+      <div class="score-sub" id="score-sub">серия 0:0 · ничьи 0 · игра 1</div>
+    </div>
+    <div class="player-card p2" id="card2">
+      <div class="first-move-badge">⭐ первый</div>
+      <div class="player-label">Игрок 2</div>
+      <div class="player-avatar" id="av2">🐼</div>
+      <button class="player-name-btn" data-p="1">сменить</button>
+      <div class="score-text" id="score-text2">Захвачено: 0</div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="animal-modal">
+  <div class="modal">
+    <h2>Выбери зверька</h2>
+    <p id="animal-who">Игрок 1, кто ты?</p>
+    <div class="animal-grid" id="animal-grid"></div>
+    <div class="modal-actions"><button class="btn" id="animal-cancel">отмена</button></div>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+const $ = id => document.getElementById(id);
+const canvas = $('board'), ctx = canvas.getContext('2d');
+
+const COLORS = ['#c96d9c','#688bb8'];
+const NAMES  = ['Игрок 1','Игрок 2'];
+const EMOJIS = ['🦊','🐼','🐱','🐰','🦁','🐯','🐻','🐨','🐸','🦉','🦄','🐙'];
+const SAVE_KEY = 'dots-territory-v4';
+
+let N = 15;
+let pts = [];          // pts[y][x] = null | {c, dead, owner}
+let terr = [];         // terr[cy][cx] = -1 | 0 | 1 (территория)
+let edges = [];        // нарисованные контуры захвата {x1,y1,x2,y2,c}
+const edgeSet = new Set();
+let current = 0, firstMover = 0, startedOnce = false;
+let scores = [0,0], series = [0,0], draws = 0, gameNum = 1;
+let animals = ['🦊','🐼'];
+let over = false, lastMove = null, hover = null;
+let geo = {size:0, sp:0, pad:0};
+let modalPlayer = null;
+
+const DIRS8 = [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]];
+const K = (x,y) => x + ',' + y;
+const inB = (x,y) => x>=0 && y>=0 && x<=N && y<=N;
+
+/* ---------- геометрия клеток вокруг узла ---------- */
+function cellsAround(x,y){
+  const out = [];
+  for(const cy of [y-1,y]) for(const cx of [x-1,x])
+    if(cx>=0 && cy>=0 && cx<N && cy<N) out.push([cx,cy]);
+  return out;
+}
+/* все смежные клетки — территория игрока p (узел внутри захваченной зоны) */
+function allCellsOwned(x,y,p){
+  const cs = cellsAround(x,y);
+  if(!cs.length) return false;
+  return cs.every(([cx,cy]) => terr[cy][cx] === p);
+}
+function canPlace(x,y,p){
+  return pts[y][x] === null && !allCellsOwned(x,y,1-p);
+}
+function boardFull(){
+  for(let y=0;y<=N;y++) for(let x=0;x<=N;x++) if(!pts[y][x]) return false;
+  return true;
+}
+
+/* ---------- заливка группы точек противника ---------- */
+function bfsGroup(sx,sy,p){
+  const seen = new Set(), empties = new Set(), enemies = new Set();
+  let escaped = false;
+  const q = [[sx,sy]];
+  seen.add(K(sx,sy));
+  while(q.length){
+    const [x,y] = q.pop();
+    const pt = pts[y][x];
+    if(pt && !pt.dead && pt.c !== p) enemies.add(K(x,y)); else empties.add(K(x,y));
+    if(x===0 || x===N || y===0 || y===N) escaped = true;
+    for(const [dx,dy] of DIRS8){
+      const nx = x+dx, ny = y+dy;
+      if(nx<0 || ny<0 || nx>N || ny>N) continue;
+      const k = K(nx,ny);
+      if(seen.has(k)) continue;
+      const np = pts[ny][nx];
+      const passable = !np || (!np.dead && np.c !== p);
+      if(!passable) continue;                       // стена: свои точки и все мёртвые
+      if(!np && allCellsOwned(nx,ny,p)) continue;   // узел внутри чужой территории
+      if(dx !== 0 && dy !== 0){                     // диагональ зажата стенами?
+        const a = pts[y][nx], b = pts[ny][x];
+        const sA = a && a.owner === p, sB = b && b.owner === p;
+        if(sA && sB) continue;
+      }
+      seen.add(k);
+      q.push([nx,ny]);
+    }
+  }
+  return {enclosed: !escaped, empties, enemies};
+}
+
+/* уголок клетки принадлежит внутренней области? */
+function cornerOk(x,y,g,p){
+  if(!inB(x,y)) return false;
+  const k = K(x,y);
+  if(g.enemies.has(k) || g.empties.has(k)) return true;
+  const pt = pts[y][x];
+  if(!pt) return allCellsOwned(x,y,p);
+  return pt.owner === p;
+}
+function cellEnclosed(cx,cy,g,p){
+  return cornerOk(cx,cy,g,p) && cornerOk(cx+1,cy,g,p) &&
+         cornerOk(cx,cy+1,g,p) && cornerOk(cx+1,cy+1,g,p);
+}
+function isPOwned(x,y,p){
+  const pt = pts[y][x];
+  return !!pt && pt.owner === p;
+}
+/* рисуем линии только для замкнутого контура */
+function addCellEdges(cx,cy,p){
+  const cs = [[cx,cy],[cx+1,cy],[cx,cy+1],[cx+1,cy+1]];
+  for(let i=0;i<4;i++) for(let j=i+1;j<4;j++){
+    const [ax,ay] = cs[i], [bx,by] = cs[j];
+    if(Math.abs(ax-bx)>1 || Math.abs(ay-by)>1) continue;
+    if(!isPOwned(ax,ay,p) || !isPOwned(bx,by,p)) continue;
+    const k = K(ax,ay)+'|'+K(bx,by);
+    if(edgeSet.has(k)) continue;
+    edgeSet.add(k);
+    edges.push({x1:ax, y1:ay, x2:bx, y2:by, c:p});
+  }
+}
+
+/* проверка захватов после хода игрока p */
+function processCaptures(p){
+  const enemy = 1-p;
+  const done = new Set();
+  let gained = 0;
+  for(let y=0;y<=N;y++) for(let x=0;x<=N;x++){
+    const pt = pts[y][x];
+    if(!(pt && pt.c===enemy && !pt.dead)) continue;
+    if(done.has(K(x,y))) continue;
+    const g = bfsGroup(x,y,p);
+    g.enemies.forEach(k => done.add(k));
+    if(!g.enclosed) continue;
+    gained += g.enemies.size;
+    g.enemies.forEach(k => {
+      const [ex,ey] = k.split(',').map(Number);
+      pts[ey][ex].dead = true;
+      pts[ey][ex].owner = p;
+    });
+    for(let cy=0;cy<N;cy++) for(let cx=0;cx<N;cx++){
+      if(terr[cy][cx] !== -1) continue;
+      if(cellEnclosed(cx,cy,g,p)){
+        terr[cy][cx] = p;
+        addCellEdges(cx,cy,p);
+      }
+    }
+  }
+  if(gained > 0) scores[p] += gained;
+  return gained;
+}
+
+/* ---------- ход ---------- */
+function makeMove(x,y){
+  pts[y][x] = {c:current, dead:false, owner:current};
+  lastMove = [x,y];
+  processCaptures(current);
+  current = 1-current;
+  updateUI(); persist(); render();
+  if(boardFull()) endGame();
+}
+
+/* ---------- отрисовка ---------- */
+function hexA(h,a){
+  const r = parseInt(h.slice(1,3),16), g = parseInt(h.slice(3,5),16), b = parseInt(h.slice(5,7),16);
+  return 'rgba('+r+','+g+','+b+','+a+')';
+}
+function layout(){
+  const wrap = canvas.parentElement;
+  const w = Math.max(260, Math.min(wrap.clientWidth - 32, 620));
+  geo.size = w;
+  geo.sp = w / (N + 2);
+  geo.pad = geo.sp;
+}
+function render(){
+  const dpr = Math.max(1, window.devicePixelRatio || 1);
+  const size = geo.size;
+  canvas.width = Math.round(size*dpr);
+  canvas.height = Math.round(size*dpr);
+  canvas.style.width = size+'px';
+  canvas.style.height = size+'px';
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,size,size);
+  const sp = geo.sp, pad = geo.pad;
+
+  // территория
+  for(let cy=0;cy<N;cy++) for(let cx=0;cx<N;cx++){
+    const o = terr[cy][cx];
+    if(o < 0) continue;
+    ctx.fillStyle = hexA(COLORS[o], 0.22);
+    ctx.fillRect(pad+cx*sp+1.5, pad+cy*sp+1.5, sp-3, sp-3);
+  }
+  // сетка
+  ctx.strokeStyle = '#dbe2ea';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  for(let i=0;i<=N;i++){
+    const c = pad + i*sp;
+    ctx.moveTo(pad, c); ctx.lineTo(pad+N*sp, c);
+    ctx.moveTo(c, pad); ctx.lineTo(c, pad+N*sp);
+  }
+  ctx.stroke();
+  // контуры захвата
+  if(edges.length){
+    ctx.lineCap = 'round';
+    ctx.lineWidth = Math.max(2.5, sp*0.14);
+    for(const e of edges){
+      ctx.strokeStyle = COLORS[e.c];
+      ctx.beginPath();
+      ctx.moveTo(pad+e.x1*sp, pad+e.y1*sp);
+      ctx.lineTo(pad+e.x2*sp, pad+e.y2*sp);
+      ctx.stroke();
+    }
+  }
+  // точки
+  const r = Math.max(3, sp*0.28);
+  for(let y=0;y<=N;y++) for(let x=0;x<=N;x++){
+    const pt = pts[y][x];
+    if(!pt) continue;
+    const X = pad+x*sp, Y = pad+y*sp;
+    if(pt.dead){
+      ctx.strokeStyle = COLORS[pt.c];
+      ctx.lineWidth = Math.max(1.5, sp*0.07);
+      ctx.beginPath(); ctx.arc(X, Y, r*0.75, 0, Math.PI*2); ctx.stroke();
+    } else {
+      ctx.fillStyle = COLORS[pt.c];
+      ctx.beginPath(); ctx.arc(X, Y, r, 0, Math.PI*2); ctx.fill();
+    }
+    if(lastMove && lastMove[0]===x && lastMove[1]===y && !pt.dead){
+      ctx.strokeStyle = '#ffd66b';
+      ctx.lineWidth = Math.max(2, sp*0.09);
+      ctx.beginPath(); ctx.arc(X, Y, r+2.5, 0, Math.PI*2); ctx.stroke();
+    }
+  }
+  // призрак под курсором
+  if(hover && !over && setupHidden() && canPlace(hover.x, hover.y, current)){
+    ctx.fillStyle = hexA(COLORS[current], 0.4);
+    ctx.beginPath(); ctx.arc(pad+hover.x*sp, pad+hover.y*sp, r, 0, Math.PI*2); ctx.fill();
+  }
+}
+
+/* ---------- ввод ---------- */
+function pick(e){
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+  const gx = Math.round((mx-geo.pad)/geo.sp), gy = Math.round((my-geo.pad)/geo.sp);
+  if(!inB(gx,gy)) return null;
+  const dx = mx - (geo.pad+gx*geo.sp), dy = my - (geo.pad+gy*geo.sp);
+  if(Math.hypot(dx,dy) > geo.sp*0.55) return null;
+  return {x:gx, y:gy};
+}
+function setupHidden(){ return $('setup-panel').classList.contains('hidden'); }
+
+canvas.addEventListener('pointermove', e => { hover = pick(e); render(); });
+canvas.addEventListener('pointerleave', () => { hover = null; render(); });
+canvas.addEventListener('click', e => {
+  if(over || !setupHidden()) return;
+  const c = pick(e);
+  if(!c) return;
+  if(!canPlace(c.x, c.y, current)) return;
+  makeMove(c.x, c.y);
+});
+
+/* ---------- интерфейс ---------- */
+function updateUI(){
+  $('turn-indicator').textContent = over ? '🏁 Игра окончена' : animals[current] + ' Ход ' + NAMES[current];
+  $('card1').classList.toggle('active', current===0 && !over);
+  $('card2').classList.toggle('active', current===1 && !over);
+  $('card1').classList.toggle('first-mover', firstMover===0);
+  $('card2').classList.toggle('first-mover', firstMover===1);
+  $('av1').textContent = animals[0];
+  $('av2').textContent = animals[1];
+  $('score-text1').textContent = 'Захвачено: ' + scores[0] + ' точ.';
+  $('score-text2').textContent = 'Захвачено: ' + scores[1] + ' точ.';
+  $('score-main').textContent = scores[0] + ' : ' + scores[1];
+  $('score-sub').textContent = 'серия ' + series[0]+':'+series[1] + ' · ничьи ' + draws + ' · игра ' + gameNum;
+}
+
+function endGame(){
+  over = true;
+  let w = -1;
+  if(scores[0] > scores[1]) w = 0;
+  else if(scores[1] > scores[0]) w = 1;
+  if(w >= 0){
+    series[w]++;
+    $('go-badge').textContent = '🏆';
+    $('go-title').textContent = NAMES[w] + ' (' + animals[w] + ') побеждает!';
+    $('go-score').textContent = 'Захвачено: ' + scores[w] + ' точек · счёт серии ' + series[0] + ':' + series[1];
+  } else {
+    draws++;
+    $('go-badge').textContent = '🤝';
+    $('go-title').textContent = 'Ничья!';
+    $('go-score').textContent = 'Счёт серии ' + series[0] + ':' + series[1];
+  }
+  gameNum++;
+  $('game-over').classList.add('visible');
+  updateUI(); persist();
+}
+
+/* ---------- новые настройки / продолжение ---------- */
+function startNewGame(){
+  N = parseInt($('board-size').value, 10);
+  pts = Array.from({length:N+1}, () => Array(N+1).fill(null));
+  terr = Array.from({length:N}, () => Array(N).fill(-1));
+  edges = []; edgeSet.clear();
+  scores = [0,0]; lastMove = null; over = false;
+  if(startedOnce) firstMover = 1 - firstMover;
+  startedOnce = true;
+  current = firstMover;
+  $('setup-hint').textContent = '';
+  hideSetup(); updateUI(); persist(); layout(); render();
+}
+function showSetup(){
+  $('btn-close').style.display = startedOnce ? '' : 'none';
+  $('setup-panel').classList.remove('hidden');
+}
+function hideSetup(){ $('setup-panel').classList.add('hidden'); }
+
+$('btn-new').onclick = startNewGame;
+$('btn-again').onclick = startNewGame;
+$('btn-settings').onclick = showSetup;
+$('btn-close').onclick = hideSetup;
+$('btn-continue').onclick = () => {
+  const raw = localStorage.getItem(SAVE_KEY);
+  if(!raw || !loadState(raw)){
+    $('setup-hint').textContent = 'Сохранённой игры нет — начните новую';
+    return;
+  }
+  hideSetup(); layout(); render();
+};
+
+/* ---------- сохранение ---------- */
+function persist(){
+  if(!startedOnce) return;
+  const data = {
+    N,
+    pts: pts.map(row => row.map(p => !p ? '' : (p.dead ? 'd'+p.c+p.owner : 'p'+p.c))),
+    terr, edges, current, firstMover, scores, series, draws, gameNum, animals, over, lastMove
+  };
+  try{ localStorage.setItem(SAVE_KEY, JSON.stringify(data)); }catch(e){}
+}
+function loadState(raw){
+  try{
+    const d = JSON.parse(raw);
+    if(!d || typeof d.N !== 'number') return false;
+    N = d.N;
+    pts = d.pts.map(row => row.map(s => {
+      if(!s) return null;
+      if(s[0]==='d') return {c:+s[1], dead:true, owner:+s[2]};
+      return {c:+s[1], dead:false, owner:+s[1]};
+    }));
+    terr = d.terr;
+    edges = d.edges || [];
+    edgeSet.clear();
+    edges.forEach(e => edgeSet.add(K(e.x1,e.y1)+'|'+K(e.x2,e.y2)));
+    current = d.current; firstMover = d.firstMover;
+    scores = d.scores; series = d.series; draws = d.draws; gameNum = d.gameNum;
+    animals = d.animals; over = d.over; lastMove = d.lastMove;
+    startedOnce = true;
+    $('game-over').classList.toggle('visible', !!over);
+    $('board-size').value = String(N);
+    updateUI();
+    return true;
+  }catch(e){ return false; }
+}
+
+/* ---------- выбор зверька ---------- */
+function buildAnimalGrid(){
+  const g = $('animal-grid');
+  g.innerHTML = '';
+  EMOJIS.forEach(e => {
+    const b = document.createElement('div');
+    b.className = 'animal-option';
+    b.textContent = e;
+    b.onclick = () => {
+      if(b.classList.contains('disabled')) return;
+      animals[modalPlayer] = e;
+      closeModal(); updateUI(); persist();
+    };
+    g.appendChild(b);
+  });
+}
+function openModal(pi){
+  modalPlayer = pi;
+  $('animal-who').textContent = NAMES[pi] + ', кто ты?';
+  const opts = $('animal-grid').children;
+  for(let j=0;j<opts.length;j++){
+    opts[j].classList.toggle('selected', EMOJIS[j] === animals[pi]);
+    opts[j].classList.toggle('disabled', EMOJIS[j] === animals[1-pi]);
+  }
+  $('animal-modal').classList.add('open');
+}
+function closeModal(){ $('animal-modal').classList.remove('open'); }
+
+document.querySelectorAll('.player-name-btn').forEach(b => b.onclick = () => openModal(+b.dataset.p));
+$('animal-cancel').onclick = closeModal;
+
+/* ---------- старт ---------- */
+buildAnimalGrid();
+updateUI();
+layout();
+render();
+window.addEventListener('resize', () => { layout(); render(); });
+})();
+</script>
+</body>
+</html>

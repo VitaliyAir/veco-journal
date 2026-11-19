@@ -398,6 +398,37 @@ body {
   .article-split .article-embed { height: 300px; }
 }
 
+/* Clickable square tiles with screenshots of playable demos (games). */
+.article-tiles {
+  list-style: none; margin: 10px 0 22px; padding: 0;
+  display: grid; gap: 18px;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 240px));
+}
+.article-tile {
+  position: relative; display: block; aspect-ratio: 1 / 1;
+  border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+  background: var(--surface); box-shadow: var(--shadow);
+  text-decoration: none; color: #fff;
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.article-tile:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,.16); }
+.article-tile img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform .25s ease; }
+.article-tile:hover img { transform: scale(1.04); }
+.article-tile-caption {
+  position: absolute; inset: auto 0 0 0;
+  display: flex; flex-direction: column; gap: 2px;
+  padding: 40px 12px 12px;
+  background: linear-gradient(to top,
+    rgba(12,12,16,.92) 0%,
+    rgba(12,12,16,.78) 45%,
+    rgba(12,12,16,0) 100%);
+}
+.article-tile-title {
+  font-weight: 600; font-size: .95rem; line-height: 1.25;
+  text-shadow: 0 1px 2px rgba(0,0,0,.45);
+}
+.article-tile-note { font-size: .78rem; opacity: .92; line-height: 1.3; text-shadow: 0 1px 2px rgba(0,0,0,.45); }
+
 /* One illustration, optionally with a call-to-action button right under it. */
 .article-embed-block { display: flex; flex-direction: column; align-items: stretch; }
 .article-embed-block--cta { max-width: 620px; }

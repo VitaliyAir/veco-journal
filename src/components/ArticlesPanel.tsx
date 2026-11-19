@@ -113,6 +113,21 @@ function ArticleReader({ article, onBack }: { article: Article; onBack: () => vo
                 <figcaption>{s.image.caption[lang]}</figcaption>
               </figure>
             )}
+            {s.tiles && (
+              <ul className="article-tiles">
+                {s.tiles.map((tile, k) => (
+                  <li key={k}>
+                    <a className="article-tile" href={tile.href} target="_blank" rel="noopener noreferrer">
+                      <img src={tile.src} alt={tile.title[lang]} loading="lazy" />
+                      <span className="article-tile-caption">
+                        <span className="article-tile-title">{tile.title[lang]}</span>
+                        {tile.caption && <span className="article-tile-note">{tile.caption[lang]}</span>}
+                      </span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
             {!s.split && embeds.length === 1 && <ObjectEmbed object={embeds[0]} lang={lang} />}
             {!s.split && embeds.length > 1 && (
               <div className="article-pair">
